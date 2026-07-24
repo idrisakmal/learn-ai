@@ -59,3 +59,42 @@ with **Bun as the package manager only** (the app runs on Node).
   - Takeaway: the plan couldn't be executed cleanly until these 5 gaps were closed — cheap
     to resolve now on paper, expensive to discover mid-implementation.
 
+---
+
+## Entry 3 — Execute the plan (plan → code)
+
+- **Prompt:** Create a Config API Service in the `config-service` folder, according to the Implementation Plan in `@/prompts/3-web-api-plan.md`.
+- **Tool:** Claude Code
+- **Mode:** Act (filesystem read/write, run commands)
+- **Context:** Clean
+- **Model:** Claude Opus 4.8
+- **Input:** `prompts/3-web-api-plan.md`
+- **Output:** `config-service/`
+- **Cost:** [enter after the run completes]
+- **Environment notes:**
+  - Machine has Node 24 (spec/plan targeted Node 22 LTS) — newer, backward-compatible, no
+    change needed. Bun 1.3.10, Docker present. Port 5432 already had an unknown Postgres, so
+    the project runs its **own PostgreSQL 16 container on port 5433** for isolation.
+- **Reflections:**
+  - **Outcome:** clean build, lint passes, **35/35 tests green**, and the server boots and
+    serves the full happy path plus 400/409/404 error paths against real PostgreSQL. ULIDs
+    are generated app-side (e.g. `01KY8W1W6DYC8XCA2H2BTVNJB1`); jsonb `config` round-trips.
+  - The plan executed almost verbatim — the up-front decision-closing (Entry 3) paid off:
+    no mid-build detours to resolve ambiguity.
+  - Things I'd want different next time (captured as persistent rules in root `AGENTS.md`):
+    - The `test/` folder ended up needed immediately (shared `resetDb` helper), so the
+      "don't create it until needed" guidance resolved on the first module. Fine, but worth
+      stating the DB-reset strategy in the spec next time.
+    - Prisma logs expected constraint violations at `error` level, so the passing test run
+      still prints scary `prisma:error` blocks. Noise, not failure — but a spec note to
+      quiet Prisma logging under `NODE_ENV=test` would make green runs actually look green.
+    - Default `PORT=3000` collided with another local app; had to move to 3999. A less
+      common default (or documenting the collision) would smooth first-run.
+    - `z.record(z.string(), z.unknown())` accepts any JSON object for `config` (per the
+      decision to leave it uncapped) — revisit if we ever want size/shape limits.
+  - Environment: Node 24 (not the planned 22 LTS) worked with no changes. Postgres runs in
+    a dedicated `config-service-pg` container on **5435** (5432/5433/5434 were taken by
+    other projects).
+
+
+

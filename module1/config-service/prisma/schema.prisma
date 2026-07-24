@@ -1,0 +1,47 @@
+// Prisma schema for the Config API Service.
+// Database: PostgreSQL 16. IDs are ULIDs generated in application code (no @default).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Application {
+  id        String   @id
+  name      String   @unique @db.VarChar(256)
+  comments  String?  @db.VarChar(1024)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  configurations Configuration[]
+
+  @@map("applications")
+}
+
+model Configuration {
+  id            String   @id
+  applicationId String
+  name          String   @db.VarChar(256)
+  comments      String?  @db.VarChar(1024)
+  config        Json     @db.JsonB
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Name is unique per application.
+  @@unique([applicationId, name])
+  @@map("configurations")
+}
+
+// Module 3 extension point (do NOT build now):
+// model Flag {
+//   id            String  @id
+//   applicationId String
+//   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+//   ...
+// }
