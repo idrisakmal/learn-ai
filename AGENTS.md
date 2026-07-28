@@ -9,6 +9,7 @@ The project lives in `module1/`. Paths below are from the repo root.
 
 | Path | What |
 |---|---|
+| `module1/Makefile` | Every common task. `make help` lists them. Prefer these over raw commands. |
 | `module1/config-service/` | The Config API Service — Fastify, Prisma, PostgreSQL |
 | `module1/context/` | The context framework (below) |
 | `module1/ui/` | Admin UI — **planned, not built yet** |

@@ -41,16 +41,31 @@ it is for, and wait for approval.
 
 ## Running it
 
-From `config-service/`:
+**Use the Makefile.** It lives at the project root (`module1/`), and every target
+is safe to run twice. `make help` lists them.
 
-| Command | Does |
+| Target | Does |
 |---|---|
-| `bun run dev` | tsx watch, reads `.env` |
-| `bun run build` | `tsc -p tsconfig.json` → `dist/` |
-| `bun run start` | runs the built output on Node |
-| `bun run test` | `vitest run` |
-| `bun run migrate` | `prisma migrate dev` |
-| `bun run lint` | `eslint .` |
+| `make setup` | Fresh machine: install, start the database, migrate both databases |
+| `make dev` | Run the service with reload |
+| `make test` | Run the suite (starts the database first if needed) |
+| `make check` | What CI would run: lint, build, test |
+| `make db-up` / `db-down` | Start / stop PostgreSQL; data is kept |
+| `make db-shell` | `psql` against the development database |
+| `make migrate` | New migration against the development database |
+| `make migrate-test` | Apply existing migrations to the test database |
+| `make db-reset` | **Destructive.** Drop and recreate both databases |
+
+Targets that need the database depend on `db-up`, so `make test` works from cold
+on a machine where nothing is running.
+
+Underneath, the package scripts in `config-service/package.json` are `dev`,
+`build`, `start`, `test`, `migrate`, and `lint` — run them with `bun run <script>`
+if you need one directly.
+
+> After changing `prisma/schema.prisma`: `make migrate` updates the development
+> database, but the **test database needs `make migrate-test` too**. Forgetting it
+> makes tests fail against a stale schema.
 
 - Service listens on **3999**. That is the default in `config/env.ts`, not just
   a local override — deliberately not 3000, which collides with most other local

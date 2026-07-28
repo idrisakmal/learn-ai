@@ -235,12 +235,48 @@ instead of rewriting it after every addition.
 
 ---
 
+---
+
+## Entry 8 — Makefile
+
+- **Prompt:** Add the Makefile before building the UI.
+- **Tool:** Claude Code
+- **Mode:** Act
+- **Context:** Continued
+- **Model:** Claude Opus 5 (1M context)
+- **Input:** `package.json`, `docker inspect config-service-pg`
+- **Output:** `module1/Makefile`
+- **Cost:** [enter after the run completes]
+- **Reflections:**
+  - **The interesting part was not the wrapper, it was what had never been written down.**
+    The `package.json` scripts were easy to wrap. But the PostgreSQL container had been
+    created by hand in a terminal months ago, and *how* existed nowhere in the repo — it
+    had to be recovered with `docker inspect` off the running container. On a new machine
+    the project was not reproducible.
+  - Same for the **test database**: nothing in the repo created `config_service_test` or
+    applied migrations to it. `prisma migrate dev` only touches the development database.
+    That step lived purely in shell history. It is now `make migrate-test`, and
+    `make setup` chains the whole cold start.
+  - Targets that need the database depend on `db-up`, so `make test` works from nothing.
+    Idempotence was the design rule — `db-up` creates the container, or starts it, or does
+    nothing, and always ends with both databases present.
+  - Caught by actually running each target rather than assuming: `test-watch` was written
+    as `vitest run --watch`, which contradicts itself. Changed to `vitest watch` and
+    verified it reaches "Waiting for file changes". `db-reset` is the one target left
+    untested on purpose — it drops the development database.
+  - The recurring theme of this module again: the gap was never in the code, it was in the
+    things that were only ever in someone's head or terminal history.
+
+---
+
 ## Carried forward
 
 - Scaffold-then-fill, with placeholders the assistant may not guess at, is the technique
   to reuse on the next project. Consider turning it into a template (Module 2 extra credit).
 - Check whether a documented "learning" was ever applied to the code. Several were not.
-- Still outstanding: the Admin UI (exercise 5), and a `Makefile` before Module 3.
+- Ask "could someone rebuild this on a clean laptop from what is committed?" — for this
+  project the answer was no until the Makefile existed.
+- Still outstanding: the Admin UI (exercise 5).
 - Unmeasured: no cost figures were recorded for any Module 2 entry. Worth capturing next
   time, since comparing model cost against output quality is an explicit module objective.
 
