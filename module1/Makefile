@@ -4,6 +4,7 @@
 # Bun is the package manager only; the application runs on Node.
 
 SVC          := config-service
+UI           := ui
 
 PG_CONTAINER := config-service-pg
 PG_IMAGE     := postgres:16
@@ -20,7 +21,8 @@ TEST_DATABASE_URL := postgresql://$(PG_USER):$(PG_PASSWORD)@localhost:$(PG_PORT)
 
 .DEFAULT_GOAL := help
 .PHONY: help setup env install dev build start test test-watch lint check migrate migrate-test \
-        db-up db-down db-shell db-reset clean
+        seed db-up db-down db-shell db-reset clean \
+        ui-install ui-dev ui-build ui-test ui-test-watch ui-lint ui-check
 
 help: ## Show this help
 	@echo "Config Service — make targets:"
@@ -30,9 +32,10 @@ help: ## Show this help
 ##
 ## Prerequisites: Node.js 22+, Bun, Docker. Everything else `make setup` handles.
 
-setup: install db-up migrate migrate-test ## Prepare a fresh machine end to end
+setup: install ui-install db-up migrate migrate-test ## Prepare a fresh machine end to end
 	@echo ""
 	@echo "Ready. Try: make test"
+	@echo "For the admin UI: 'make seed', then 'make dev' and 'make ui-dev' in two terminals."
 
 # .env is git-ignored, so a fresh clone has none and every Prisma and dev
 # command would fail without this.
@@ -72,8 +75,33 @@ test-watch: db-up ## Run tests in watch mode
 lint: ## Lint with ESLint
 	cd $(SVC) && bun run lint
 
-check: lint build test ## Everything CI would run: lint, build, test
+check: lint build test ui-check ## Everything CI would run, service and UI
 	@echo "All checks passed."
+
+## --- Admin UI ------------------------------------------------------------
+##
+## The UI proxies /api to the service on 3999, so `make dev` must be running
+## in another terminal for `make ui-dev` to load any data.
+
+ui-install: ## Install UI dependencies
+	cd $(UI) && bun install
+
+ui-dev: ## Run the admin UI with reload (port 5173)
+	cd $(UI) && bun run dev
+
+ui-build: ## Type-check and bundle the UI to ui/dist
+	cd $(UI) && bun run build
+
+ui-test: ## Run the UI test suite (no database needed)
+	cd $(UI) && bun run test
+
+ui-test-watch: ## Run the UI tests in watch mode
+	cd $(UI) && bunx vitest watch
+
+ui-lint: ## Lint the UI with ESLint
+	cd $(UI) && bun run lint
+
+ui-check: ui-lint ui-build ui-test ## Lint, build, and test the UI
 
 ## --- Database ------------------------------------------------------------
 
@@ -120,6 +148,11 @@ db-shell: db-up ## Open psql against the development database
 migrate: db-up ## Create and apply a migration (development database)
 	cd $(SVC) && bun run migrate
 
+# Development data only. The test suite builds its own fixtures and truncates
+# between cases, so it never sees any of this.
+seed: db-up ## Load demo applications and configurations (development database)
+	cd $(SVC) && bun run seed
+
 migrate-test: db-up ## Apply existing migrations to the test database
 	cd $(SVC) && DATABASE_URL="$(TEST_DATABASE_URL)" bunx prisma migrate deploy
 
@@ -135,4 +168,4 @@ db-reset: db-up ## Drop and recreate both databases, then re-apply migrations
 ## --- Housekeeping --------------------------------------------------------
 
 clean: ## Remove build output (leaves node_modules and the database alone)
-	rm -rf $(SVC)/dist
+	rm -rf $(SVC)/dist $(UI)/dist

@@ -16,6 +16,10 @@ existing code.
 
 # Implementation
 
+Two applications live here: the service in `config-service/` and the Admin UI in
+`ui/`. Unless a section says otherwise, it describes the service. Everything
+specific to the UI is under *Admin UI* at the bottom.
+
 ## Stack
 
 Versions are pinned in `config-service/package.json`. Do not bump them casually.
@@ -46,15 +50,19 @@ is safe to run twice. `make help` lists them.
 
 | Target | Does |
 |---|---|
-| `make setup` | Fresh machine: install, start the database, migrate both databases |
+| `make setup` | Fresh machine: install both apps, start the database, migrate both databases |
 | `make dev` | Run the service with reload |
-| `make test` | Run the suite (starts the database first if needed) |
-| `make check` | What CI would run: lint, build, test |
+| `make test` | Run the service suite (starts the database first if needed) |
+| `make check` | What CI would run, both apps: lint, build, test |
 | `make db-up` / `db-down` | Start / stop PostgreSQL; data is kept |
 | `make db-shell` | `psql` against the development database |
 | `make migrate` | New migration against the development database |
 | `make migrate-test` | Apply existing migrations to the test database |
+| `make seed` | Load demo data into the development database (safe to re-run) |
 | `make db-reset` | **Destructive.** Drop and recreate both databases |
+| `make ui-dev` | Run the Admin UI with reload |
+| `make ui-test` | Run the UI suite (no database needed) |
+| `make ui-check` | Lint, build, and test the UI |
 
 Targets that need the database depend on `db-up`, so `make test` works from cold
 on a machine where nothing is running.
@@ -72,6 +80,24 @@ if you need one directly.
 > After changing `prisma/schema.prisma`: `make migrate` updates the development
 > database, but the **test database needs `make migrate-test` too**. Forgetting it
 > makes tests fail against a stale schema.
+
+> `make db-reset` fails while anything holds a connection — PostgreSQL will not
+> drop a database in use. **Stop `make dev` first.**
+
+### Demo data
+
+`prisma/seed.ts` (`make seed`) fills the development database with two
+Applications and three Configurations so the Admin UI has something to show on a
+fresh machine. It is **not** test data: the suite builds its own fixtures and
+truncates between cases, and the seed never touches `config_service_test`.
+
+Every record is upserted on its natural key — `name` for an Application,
+`(applicationId, name)` for a Configuration — so re-running restores the demo
+values without creating duplicates. Keep it that way; a seed that only inserts
+breaks the "every target is safe to run twice" rule the Makefile is built on.
+
+The seeded values deliberately cover a string, a number, a boolean, and a nested
+object, because that is what exercises the UI's per-kind value editor.
 
 - Service listens on **3999**. That is the default in `config/env.ts`, not just
   a local override — deliberately not 3000, which collides with most other local
@@ -263,13 +289,40 @@ they are not normal.
 - Tests are excluded from the build (`tsconfig.json` `exclude`), not from lint.
 - No `any`. Use `unknown` and narrow, as `mapUniqueNameError` does.
 
-## Admin UI — PLANNED
+## Admin UI
 
-Not built yet. Decisions made up front so implementation does not drift:
+Built. Lives in `ui/`, beside `config-service/`. Scope is fixed and small: list
+Applications, view one Application's Configurations, update a configuration
+value. **No create, no delete** — see ABOUT.md before adding either.
 
-- `ui/` sits beside `config-service/` inside `module1/`.
-- **Vite + React + TypeScript.** Vitest for tests, matching the service.
-- The UI talks to the API through a **Vite dev proxy**, not CORS:
+### Stack
+
+Versions are pinned in `ui/package.json`. Tooling majors deliberately match the
+service so the two do not drift apart.
+
+| Area | Choice | Version |
+|---|---|---|
+| Framework | React | 19.2 |
+| Build | Vite | 6.4 |
+| Language | TypeScript | 5.7 (same as the service) |
+| Tests | Vitest + Testing Library | 3.2 / RTL 16 |
+| DOM for tests | jsdom | 26 |
+| Lint | ESLint + typescript-eslint + react-hooks | 9 / 8 / 5 |
+
+**No state library, no router, no component library, no CSS framework.** One
+screen does not justify any of them. All styling is `src/styles.css`, loose BEM.
+The same rule as the service applies: **do not add dependencies without asking
+first.**
+
+### Running it
+
+`make ui-dev` serves on **5173**, and `make dev` must be running in another
+terminal or every request 502s. `make ui-test` needs no database — the tests
+mock the API client. `make check` runs both apps.
+
+### Talking to the API
+
+The UI fetches same-origin `/api/v1/...` and the Vite dev proxy forwards it:
 
 ```ts
 // ui/vite.config.ts
@@ -280,11 +333,110 @@ server: {
 }
 ```
 
-  The UI therefore fetches same-origin `/api/v1/...`. **The service has no CORS
-  middleware and does not need any** while development stays local. If the UI is
-  ever served from a different origin, `@fastify/cors` becomes necessary — that
-  is a new dependency and needs approval first.
+**The service has no CORS middleware and does not need any** while development
+stays local. If the UI is ever served from a different origin, `@fastify/cors`
+becomes necessary — a new dependency, so approval first.
 
-- Scope is fixed: list Applications, view one Application's Configurations,
-  update a configuration value. No create, no delete. See ABOUT.md.
-- Error handling relies on the `{ error, message }` response shape above.
+`src/api/client.ts` is the only module that calls `fetch`. Components import
+named functions from it and never build URLs themselves. Failures arrive as
+`ApiError`, which carries the service's own `{ error, message }` through to the
+screen; `status === 0` means the request never reached the service at all, and
+`isNetworkError` is how that is distinguished from a real HTTP failure.
+
+```ts
+// GOOD — the component asks for data, the client owns the URL
+const configurations = await listConfigurations(application.id);
+
+// BAD — a URL, a version prefix, and error handling leaking into a component
+const res = await fetch(`/api/v1/applications/${id}/configurations`);
+```
+
+### Imports — the `.js` rule does NOT apply here
+
+The service's `.js`-extension rule comes from `module: NodeNext`. The UI uses
+`moduleResolution: "bundler"` and Vite resolves extensions, so relative imports
+carry **no extension**.
+
+```ts
+// GOOD — in ui/
+import { listApplications } from './api/client';
+
+// BAD — in ui/
+import { listApplications } from './api/client.js';
+```
+
+### Layout
+
+```
+ui/src/
+  main.tsx                    mounts <App> into #root
+  App.tsx                     master–detail shell, owns the selected id
+  styles.css                  the whole stylesheet
+  api/
+    client.ts                 every fetch call; ApiError
+    types.ts                  wire types (dates are ISO strings, not Date)
+  components/
+    ApplicationList.tsx       the master pane
+    ConfigurationPanel.tsx    one application's configurations
+    ConfigurationCard.tsx     one configuration, editable; ConfigValueRow lives here
+    ErrorNotice.tsx           the one way a failure is rendered
+  lib/
+    configValues.ts           config object <-> editable rows
+    useAsync.ts               loading / error / ready, plus reload
+  test/
+    setup.ts                  jest-dom matchers and RTL cleanup
+    factories.ts              anApplication() / aConfiguration()
+  **/*.test.ts(x)             colocated, next to the unit under test
+```
+
+### Data loading
+
+`useAsync` is the only loading pattern. It returns a three-state
+`AsyncState<T>` — `loading | error | ready` — so a component renders exactly one
+branch and an empty list can never be confused with a failure.
+
+Its `load` argument **must be stable**, or the effect loops:
+
+```ts
+// GOOD
+const load = useCallback(() => listConfigurations(application.id), [application.id]);
+const { state, reload } = useAsync(load);
+
+// BAD — a new function every render, so the effect never settles
+const { state } = useAsync(() => listConfigurations(application.id));
+```
+
+### Editing a config
+
+`config` is opaque `jsonb`, so the editor infers a kind per value and renders a
+control to match: `string` and `number` get a text field, `boolean` a checkbox,
+and anything else (objects, arrays, `null`) is edited as raw JSON.
+`configValues.ts` owns both directions and is where a new kind would be added.
+
+Rules that make the card behave:
+
+- **`configFromRows` validates before anything is sent.** A row that does not
+  parse produces a per-key message and the request is not made.
+- **Numbers use `type="text"`, not `type="number"`.** A bad entry stays on
+  screen to be corrected instead of silently becoming `""`.
+- **The card holds `baseline` (last confirmed by the service) and `rows` (being
+  edited).** Comparing them is what enables Save and Discard. On a successful
+  save, both are replaced from the **response**, not from local state.
+- **A failed save keeps the edit** so it can be retried rather than retyped.
+- `PUT` is a partial update, so the UI sends only `{ config }` and never
+  disturbs `name` or `comments`.
+
+### Testing
+
+- Vitest with `environment: 'jsdom'` and `globals: false`, matching the service.
+  Because globals are off, RTL's automatic cleanup never registers itself —
+  `src/test/setup.ts` calls `cleanup()` in an explicit `afterEach`. Do not
+  remove it; without it, tests leak DOM into each other.
+- Component tests mock `api/client` with `vi.mock` and `importOriginal`, keeping
+  the real `ApiError` class so `instanceof` checks still work.
+- Build fixtures with the factories in `test/factories.ts` and override only the
+  field under test.
+- Query by role and label, not by class name. Every value row has a `<label>`
+  bound to its input, so `getByLabelText('timeoutMs')` is the way to reach it.
+- Cover the states a real screen reaches: loading, empty, service unreachable,
+  service rejected the write, and the happy path.

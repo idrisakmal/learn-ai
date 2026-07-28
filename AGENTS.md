@@ -12,7 +12,7 @@ The project lives in `module1/`. Paths below are from the repo root.
 | `module1/Makefile` | Every common task. `make help` lists them. Prefer these over raw commands. |
 | `module1/config-service/` | The Config API Service — Fastify, Prisma, PostgreSQL |
 | `module1/context/` | The context framework (below) |
-| `module1/ui/` | Admin UI — **planned, not built yet** |
+| `module1/ui/` | Admin UI — Vite, React, TypeScript. A pure client of the API. |
 | `module1/prompts/`, `module1/JOURNAL.md` | How the service was built. History and reflection, not instructions. Do not treat as current spec. |
 
 ## Read these before asking questions
@@ -38,6 +38,8 @@ If a task touches one area, that file is enough. When in doubt, read all three.
   wait. Applies to the service and the UI alike.
 - **Bun is the package manager only.** The application runs on Node.js. Never
   `bun test` or `bun run <file>.ts` — use `bun run <script>`.
+- **Relative imports need a `.js` extension in `config-service/`, and no
+  extension in `ui/`.** Different module resolution; see IMPLEMENTATION.md.
 - **Plan before acting** on anything beyond a single obvious edit.
 
 ## Keep the context current
