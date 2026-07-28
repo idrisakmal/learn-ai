@@ -8,7 +8,7 @@ describe('envSchema', () => {
 
   it('parses a valid environment and applies defaults', () => {
     const parsed = envSchema.parse(base);
-    expect(parsed.PORT).toBe(3000);
+    expect(parsed.PORT).toBe(3999);
     expect(parsed.LOG_LEVEL).toBe('info');
     expect(parsed.NODE_ENV).toBe('development');
   });

@@ -7,7 +7,8 @@ import { z } from 'zod';
  */
 export const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  PORT: z.coerce.number().int().positive().default(3000),
+  // Deliberately not 3000 — it collides with nearly every other local dev server.
+  PORT: z.coerce.number().int().positive().default(3999),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info'),

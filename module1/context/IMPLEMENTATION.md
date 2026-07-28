@@ -52,13 +52,11 @@ From `config-service/`:
 | `bun run migrate` | `prisma migrate dev` |
 | `bun run lint` | `eslint .` |
 
-- Service listens on **3999** locally (`.env`). PostgreSQL 16 runs in the
-  `config-service-pg` Docker container on host port **5435**.
+- Service listens on **3999**. That is the default in `config/env.ts`, not just
+  a local override — deliberately not 3000, which collides with most other local
+  dev servers. PostgreSQL 16 runs in the `config-service-pg` Docker container on
+  host port **5435**.
 - Databases: `config_service` (dev), `config_service_test` (tests).
-
-> **Known inconsistency:** `src/config/env.ts` and `.env.example` still default
-> `PORT` to 3000, which collides with other local apps — the local `.env`
-> overrides it to 3999. A fresh clone reproduces the collision. Worth fixing.
 
 ## Module system and imports
 
@@ -230,9 +228,11 @@ git-ignored.
 - Cover roughly the 80% of scenarios that matter per module, including the error
   paths (400 / 404 / 409). Pure type files and barrel re-exports need no tests.
 
-> **Known annoyance:** `db/prisma.ts` selects Prisma log levels from `LOG_LEVEL`
-> but does not special-case `silent`, so `prisma:error` blocks still print
-> during a passing test run. Noise, not failure.
+**A passing run prints nothing.** `LOG_LEVEL=silent` disables Prisma logging
+entirely (`resolvePrismaLogLevels` in `db/prisma.ts`), because Prisma reports
+the expected constraint violations behind the 409 and 404 tests at `error`
+level. If `prisma:error` blocks reappear on a green run, that helper regressed —
+they are not normal.
 
 ## Lint and TypeScript
 

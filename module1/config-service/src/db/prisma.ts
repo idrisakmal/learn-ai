@@ -1,10 +1,26 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { env } from '../config/env.js';
+import type { Env } from '../config/env.js';
 
 /**
- * Single shared Prisma client for the whole process. Log level follows the
- * service log level so query noise stays out of tests.
+ * Map the service log level onto Prisma's own log levels.
+ *
+ * `silent` means silent: Prisma logs expected constraint violations (the 409 and
+ * 404 paths we assert on) at `error`, so leaving `error` enabled fills a passing
+ * test run with alarming `prisma:error` blocks. Tests set LOG_LEVEL=silent.
+ */
+export function resolvePrismaLogLevels(
+  level: Env['LOG_LEVEL'],
+): Prisma.LogLevel[] {
+  if (level === 'silent') return [];
+  if (level === 'debug' || level === 'trace') return ['query', 'warn', 'error'];
+  return ['warn', 'error'];
+}
+
+/**
+ * Single shared Prisma client for the whole process. Never construct a second
+ * one — connection pool exhaustion is the failure mode.
  */
 export const prisma = new PrismaClient({
-  log: env.LOG_LEVEL === 'debug' || env.LOG_LEVEL === 'trace' ? ['query', 'warn', 'error'] : ['warn', 'error'],
+  log: resolvePrismaLogLevels(env.LOG_LEVEL),
 });
