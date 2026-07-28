@@ -266,6 +266,23 @@ instead of rewriting it after every addition.
     untested on purpose — it drops the development database.
   - The recurring theme of this module again: the gap was never in the code, it was in the
     things that were only ever in someone's head or terminal history.
+  - **Follow-up: "does it actually work on a new laptop?" was worth asking, because the
+    honest first answer was no.** `.env` is git-ignored, so a fresh clone has no
+    `DATABASE_URL` and every Prisma command fails. `bun install` also does not run the
+    Prisma postinstall, so the client was never generated. Both now handled by `install`.
+  - Verified rather than assumed: cloned the repo to a temp directory and ran the whole
+    cold start against a brand-new container on a spare port. Fresh clone → `.env` created
+    → dependencies → Prisma client → container built from nothing → both databases
+    migrated → **45/45 tests pass**. Then removed the throwaway container and volume.
+  - Two defects only surfaced because of that test. `db-up`'s readiness loop had no
+    timeout, so anything that stopped the database starting became an infinite hang;
+    it now fails after 60s and prints the container logs. And the test database URL was
+    defined in two places — the Makefile and `vitest.config.ts` — which silently disagreed
+    when the port changed; the Makefile now passes it explicitly.
+  - A red herring worth remembering: the first failures looked like Makefile bugs but were
+    caused by **zsh not word-splitting unquoted variables**, so `make db-up $OVERRIDES`
+    passed all three overrides as a single variable value. The tooling was fine; the test
+    harness was wrong. Reproduce by hand before believing a diagnosis.
 
 ---
 

@@ -59,6 +59,12 @@ is safe to run twice. `make help` lists them.
 Targets that need the database depend on `db-up`, so `make test` works from cold
 on a machine where nothing is running.
 
+**A fresh clone needs only Node 22+, Bun, and Docker.** `make setup` then does
+everything: creates `.env` from `.env.example` (it is git-ignored, so a clone has
+none), installs dependencies, generates the Prisma client, creates and starts the
+PostgreSQL container, and migrates both databases. Verified by cloning the repo
+and running it against a brand-new container: 45/45 tests pass.
+
 Underneath, the package scripts in `config-service/package.json` are `dev`,
 `build`, `start`, `test`, `migrate`, and `lint` — run them with `bun run <script>`
 if you need one directly.
