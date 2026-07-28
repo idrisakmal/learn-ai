@@ -1,0 +1,6 @@
+[submodule "assisted-to-agentic-module-1"]
+	path = assisted-to-agentic-module-1
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-1.git
+[submodule "assisted-to-agentic-module-2"]
+	path = assisted-to-agentic-module-2
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-2.git
