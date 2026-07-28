@@ -132,6 +132,15 @@ Decisions that shaped the surface:
 - **Payload shapes differ between list and single read.** `GET /applications`
   returns bare Applications; `GET /applications/:id` adds `configurationIds`.
   This keeps the list response small and predictable.
+- **Nested reads live under the parent.** `GET /applications/:id/configurations`
+  returns an application's full Configurations in one request, so clients never
+  have to follow `configurationIds` with a request per id. It 404s when the
+  application does not exist and returns `[]` when it simply has none — the two
+  cases are distinguishable. The route is registered in `application.routes.ts`
+  (all `/applications/*` paths in one place) while the query lives in
+  `configuration.service.ts` (all Configuration data access in one place); a
+  route may call another resource's service, since that is still routes →
+  services.
 - **Referential integrity is checked in the service, not left to the database.**
   `createConfiguration` looks up the Application first and throws `NotFoundError`
   so the caller gets a 404 with a useful message rather than a foreign-key
@@ -216,13 +225,9 @@ runnable in an environment without Postgres. Accepted deliberately.
 
 ## Known gaps
 
-- **No way to fetch an Application's Configurations in one request.** The only
-  path is `GET /applications/:id` for the `configurationIds`, then one
-  `GET /configurations/:id` per id — N+1 round trips. The PLANNED Admin UI needs
-  exactly this view, so it will either fan out N requests or the API needs a
-  `GET /applications/:id/configurations` endpoint. **Decide before building the
-  UI.**
-- No pagination on `GET /applications`. Fine at current scale, wrong eventually.
+- No pagination on `GET /applications` or `GET /applications/:id/configurations`.
+  Fine at current scale, wrong eventually. The nested route is where pagination
+  should land first.
 - No authentication or authorisation anywhere. See ABOUT.md for what that
   implies about storing secrets.
 - Prisma `P2003` (foreign-key violation) is not mapped by the central error

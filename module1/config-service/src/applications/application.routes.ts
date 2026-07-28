@@ -10,6 +10,7 @@ import {
   getApplication,
   listApplications,
 } from './application.service.js';
+import { listConfigurationsByApplication } from '../configurations/configuration.service.js';
 
 /**
  * Routes for /applications (registered under the /api/v1 prefix by the app).
@@ -39,5 +40,13 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
   app.get('/applications', async (_request, reply) => {
     const applications = await listApplications();
     return reply.code(200).send(applications);
+  });
+
+  // Full configurations for one application, so clients don't have to follow
+  // configurationIds with a request per id.
+  app.get('/applications/:id/configurations', async (request, reply) => {
+    const { id } = idParamSchema.parse(request.params);
+    const configurations = await listConfigurationsByApplication(id);
+    return reply.code(200).send(configurations);
   });
 }

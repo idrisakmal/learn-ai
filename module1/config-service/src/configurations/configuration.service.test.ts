@@ -7,6 +7,7 @@ import {
   createConfiguration,
   updateConfiguration,
   getConfiguration,
+  listConfigurationsByApplication,
 } from './configuration.service.js';
 
 beforeEach(resetDb);
@@ -85,5 +86,48 @@ describe('configuration.service', () => {
     });
     expect((await getConfiguration(cfg.id)).id).toBe(cfg.id);
     await expect(getConfiguration('missing')).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  describe('listConfigurationsByApplication', () => {
+    it('returns full configurations, oldest first', async () => {
+      const app = await seedApp();
+      await createConfiguration({
+        applicationId: app.id,
+        name: 'production',
+        config: { debug: false },
+      });
+      await createConfiguration({
+        applicationId: app.id,
+        name: 'staging',
+        config: { debug: true },
+      });
+
+      const found = await listConfigurationsByApplication(app.id);
+      expect(found.map((c) => c.name)).toEqual(['production', 'staging']);
+      // Full records, not just ids — this is the point of the endpoint.
+      expect(found[0].config).toEqual({ debug: false });
+    });
+
+    it('excludes configurations belonging to other applications', async () => {
+      const a = await seedApp('a');
+      const b = await seedApp('b');
+      await createConfiguration({ applicationId: a.id, name: 'db', config: {} });
+      await createConfiguration({ applicationId: b.id, name: 'db', config: {} });
+
+      const found = await listConfigurationsByApplication(a.id);
+      expect(found).toHaveLength(1);
+      expect(found[0].applicationId).toBe(a.id);
+    });
+
+    it('returns an empty array for an application with no configurations', async () => {
+      const app = await seedApp();
+      expect(await listConfigurationsByApplication(app.id)).toEqual([]);
+    });
+
+    it('throws NotFoundError when the application does not exist', async () => {
+      await expect(
+        listConfigurationsByApplication('missing'),
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
   });
 });

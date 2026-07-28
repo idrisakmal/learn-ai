@@ -64,6 +64,28 @@ export async function getConfiguration(id: string): Promise<Configuration> {
   return configuration;
 }
 
+/**
+ * All configurations belonging to one application, oldest first. Throws
+ * NotFoundError if the application itself does not exist, so callers can tell
+ * "no such application" apart from "application with no configurations".
+ */
+export async function listConfigurationsByApplication(
+  applicationId: string,
+): Promise<Configuration[]> {
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    select: { id: true },
+  });
+  if (!application) {
+    throw new NotFoundError(`Application ${applicationId} not found`);
+  }
+
+  return prisma.configuration.findMany({
+    where: { applicationId },
+    orderBy: { createdAt: 'asc' },
+  });
+}
+
 /** Map a Prisma unique-constraint violation (name-per-application) to a conflict. */
 function mapUniqueNameError(err: unknown, name?: string): unknown {
   if (
