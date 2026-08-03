@@ -14,11 +14,11 @@ that explanation belongs in the work item.
 # Status
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
-- **Task:** none yet — criteria written, none planned
-- **Stage:** not started
+- **Task:** 1 — create a flag
+- **Stage:** PLAN
 - **Updated:** 2026-08-04
 
-**Next:** PLAN task 1, create a flag.
+**Next:** agree the plan, commit it, then BUILD & ASSESS.
 
 <!--
 When a work item is active, this reads:
