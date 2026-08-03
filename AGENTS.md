@@ -13,6 +13,7 @@ The project lives in `module1/`. Paths below are from the repo root.
 |---|---|
 | `module1/Makefile` | Every common task. `make help` lists them. Prefer these over raw commands. |
 | `module1/config-service/` | The Config API Service — Fastify, Prisma, PostgreSQL |
+| `module1/changes/` | Work items — one numbered file per feature, plus `TEMPLATE.md` |
 | `module1/context/` | The context framework (below) |
 | `module1/ui/` | Admin UI — Vite, React, TypeScript. A pure client of the API. |
 | `module1/prompts/`, `module1/JOURNAL.md` | How the service was built. History and reflection, not instructions. Do not treat as current spec. |
@@ -34,8 +35,13 @@ read them at the start of a conversation rather than inferring from code.
 - **`context/ENV_SCRIPTS.md`** — environments, ports, every environment
   variable, and every command, plus when it is acceptable to run something other
   than a `make` target. Read before running anything.
+- **`context/WORKFLOW.md`** — the four stages every task goes through, and the
+  rule that only the user closes a stage. Read before starting work.
+- **`context/WORKFLOW_STATUS.md`** — which work item, task and stage are live.
+  **Read this first in a new conversation**; it is how "what's our status?" gets
+  answered without being told.
 
-If a task touches one area, that file is enough. When in doubt, read all four.
+If a task touches one area, that file is enough. When in doubt, read all of them.
 
 The course material calls this directory `memory/`. Here it is `context/` —
 same idea, older name, kept because everything already points at it.
@@ -53,6 +59,8 @@ same idea, older name, kept because everything already points at it.
 - **`make check` is the definition of done** — lint, format, type-check, build
   and tests, all green. No skipped tests, no ignored warnings.
 - **Plan before acting** on anything beyond a single obvious edit.
+- **Never declare a workflow stage complete.** Report what is outstanding and
+  wait — the user closes stages. See WORKFLOW.md.
 
 ## Keep the context current
 

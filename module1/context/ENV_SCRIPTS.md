@@ -100,6 +100,12 @@ configuration; the API base path is the literal `/api/v1`.
 `bun test`, never `bun run <file>.ts`. Install with `bun install` / `bun add`,
 run scripts with `bun run <script>`.
 
+**Commits are signed** with an SSH key held in the 1Password agent
+(`commit.gpgsign true`, `gpg.format ssh`). If 1Password is locked, `git commit`
+fails with `error: 1Password: failed to fill whole buffer` and writes nothing.
+It is not a git problem and retrying will not help — unlock 1Password. Worth
+knowing because it stops an unattended run dead at the last step.
+
 ## Commands
 
 ### Cold start

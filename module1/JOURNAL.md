@@ -397,6 +397,55 @@ journal and in four commits of history for nothing.
 
 ---
 
+## Entry 11 — The workflow, and the first work item
+
+- **Prompt:** Module 3 exercises 2 and 3 — define the workflow, then create the
+  feature flags work item.
+- **Tool:** Claude Code
+- **Mode:** Act
+- **Context:** Continued
+- **Model:** Claude Opus 5 (1M context)
+- **Input:** the module's worked `WORKFLOW_STATUS.md` and `template.md`;
+  `context/ABOUT.md`, `context/ARCHITECTURE.md`, `prisma/schema.prisma`
+- **Output:** `context/WORKFLOW.md`, `context/WORKFLOW_STATUS.md`,
+  `changes/TEMPLATE.md`, `changes/001-feature-flags.md`; `AGENTS.md` updated
+- **Cost:** [enter after the run completes]
+- **Reflections:**
+  - **Split the module's single `WORKFLOW_STATUS.md` in two**, because the two
+    halves have opposite lifespans: the process barely changes, the status changes at
+    every transition. Together, every status update would rewrite a mostly-stable file
+    and bury the process's history in churn. Same instinct as Entry 7 — the question is
+    never how many files, it is what changes at the same rate.
+  - **The most important rule is the one an assistant will break before it has read the
+    document that contains it**: only the user closes a stage. So it went in `AGENTS.md`
+    too, which loads automatically. A rule that lives only in a file you have to be told
+    to read is not a guardrail.
+  - Two deliberate departures from the course material, both **written down as departures
+    rather than quietly ignored**. No feature branches: one person, no reviewers, no CI,
+    so a branch protects nothing. No conventional-commit prefixes: nine commits of history
+    use imperative subjects with a body explaining *why*, and consistency with the log
+    beats consistency with the convention. Recording the reasoning is what makes them
+    revisitable instead of just inconsistent.
+  - **Writing the work item was almost entirely reading.** Nothing about feature flags
+    had to be invented: ABOUT.md had named the `Flag` model and said "do not build it
+    yet", `schema.prisma` carried a commented extension point, and `Configuration`
+    already answered the shape questions — ULID key, `ON DELETE CASCADE`, name unique
+    per Application, partial `PUT`. The framework did not speed up the writing so much
+    as remove the decisions from it.
+  - The one genuine design call, and the only place the pattern was *not* copied:
+    **`enabled` is a boolean, not opaque `jsonb`**. `config` is deliberately
+    uninterpreted, but a flag that is neither on nor off is not a flag.
+  - Put an **Out of scope** section in the work item — no DELETE, no targeting, no auth —
+    so those get argued once rather than at every task. And logged a context-currency
+    action as a future task: ABOUT.md's "do not build it yet" becomes false the moment
+    task 1 starts.
+  - Friction worth recording: **commit signing failed mid-run** because the 1Password SSH
+    agent had locked. Nothing to do with the work, but it is the kind of thing that
+    stalls an unattended agent completely, and neither `ENV_SCRIPTS.md` nor anything else
+    mentions that commits are signed.
+
+---
+
 ## Carried forward
 
 - Scaffold-then-fill, with placeholders the assistant may not guess at, is the technique
