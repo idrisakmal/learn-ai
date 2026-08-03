@@ -1,7 +1,9 @@
 # Agent Instructions
 
-Loaded automatically at the start of every conversation. This file is a front
-door, not a manual — it points at the context framework and stays short.
+Loaded automatically at the start of every conversation — directly by tools that
+read `AGENTS.md`, and via the root `CLAUDE.md` import for Claude Code. This file
+is a front door, not a manual — it points at the context framework and stays
+short.
 
 ## Where things are
 
