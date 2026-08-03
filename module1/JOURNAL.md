@@ -337,6 +337,66 @@ instead of rewriting it after every addition.
 
 ---
 
+# Module 3 — Feedback Loops and a Collaborative Workflow
+
+Module 2 gave the assistant **semantic** memory — what the project is. This module
+adds **procedural** memory (how to run it) and **episodic** memory (what happened),
+and then uses all three to build per-application feature flags.
+
+The course material calls the directory `memory/`. Ours is `context/`, from Module 2.
+Kept as-is: the name is cosmetic, and renaming would break every reference in this
+journal and in four commits of history for nothing.
+
+---
+
+## Entry 10 — `ENV_SCRIPTS.md`, and the missing gate
+
+- **Prompt:** Module 3 exercise 1 — document the environments and scripts.
+- **Tool:** Claude Code
+- **Mode:** Act
+- **Context:** Continued
+- **Model:** Claude Opus 5 (1M context)
+- **Input:** `Makefile`, `package.json` ×2, `src/config/env.ts`, `vitest.config.ts`,
+  `vite.config.ts`, the module's worked example
+- **Output:** `context/ENV_SCRIPTS.md`; Prettier + `make format` / `make format-check`;
+  `AGENTS.md` and `IMPLEMENTATION.md` updated
+- **Cost:** [enter after the run completes]
+- **Reflections:**
+  - **The exercise found a hole before it found anything to document.** Module 3 requires
+    `test`, `lint`, `format` and type checks green as the definition of done. Three
+    existed. There was no formatter at all — so the honest first step was adding one,
+    not writing a document describing a gate that did not exist.
+  - Prettier alone, no `eslint-config-prettier`: the ESLint config is `typescript-eslint`
+    recommended with **no stylistic rules**, so there is nothing to disable. Checking that
+    took a minute and saved a dependency. **The reflex to add the companion package would
+    have been wrong here.**
+  - `printWidth` was decided by measurement rather than taste. At the default 80, Prettier
+    split readable one-liners like `reply.code(404).send({ ... })` across three lines; the
+    existing code had only ten lines over 90 to begin with. Ran both, compared the diffs,
+    chose **90**. Cheap to test, and it also matches the wrap width the context documents
+    already use.
+  - One `.prettierrc.json` **above** both packages rather than one in each — the same
+    anti-drift instinct as Entry 7. `.prettierignore` still has to be per package, because
+    Prettier only reads it from the directory it runs in. Worth knowing, not obvious.
+  - Tooling and the resulting 18-file reformat went in **one commit** on purpose. Splitting
+    them would have left an intermediate commit where `make check` fails, which is worse
+    than a slightly noisy diff.
+  - **Writing the document was mostly discovering what had never been written down** —
+    the same lesson as the Makefile in Entry 8, one level up. `TEST_DATABASE_URL` is not
+    in the env schema and is not read by the service; it exists purely so the suite and
+    the migrations cannot disagree. That was true before today and was recorded nowhere.
+  - The section that took the most thought was **"when to go off-script"**, because the
+    useful answer is not a list of allowed commands. It is two rules: *if you run it more
+    than twice it is a missing target*, and *never go off-script for a quality gate* —
+    `bun run test` skips the explicit `TEST_DATABASE_URL` and quietly tests a different
+    database than you think.
+  - Recorded a fact the project had been polite about: **there is no CI.** No `.github/`
+    workflow exists, so `make check` runs when a person runs it. Saying so is more useful
+    than a document that implies a pipeline is watching.
+  - Every command in the file was run before it was listed, `make help` included.
+
+---
+
 ## Carried forward
 
 - Scaffold-then-fill, with placeholders the assistant may not guess at, is the technique

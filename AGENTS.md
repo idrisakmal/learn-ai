@@ -31,8 +31,14 @@ read them at the start of a conversation rather than inferring from code.
 - **`context/IMPLEMENTATION.md`** — stack, layering, validation, error mapping,
   update semantics, and testing conventions, with good/bad examples. Read before
   writing or changing code.
+- **`context/ENV_SCRIPTS.md`** — environments, ports, every environment
+  variable, and every command, plus when it is acceptable to run something other
+  than a `make` target. Read before running anything.
 
-If a task touches one area, that file is enough. When in doubt, read all three.
+If a task touches one area, that file is enough. When in doubt, read all four.
+
+The course material calls this directory `memory/`. Here it is `context/` —
+same idea, older name, kept because everything already points at it.
 
 ## Rules that apply before you have read anything
 
@@ -42,6 +48,10 @@ If a task touches one area, that file is enough. When in doubt, read all three.
   `bun test` or `bun run <file>.ts` — use `bun run <script>`.
 - **Relative imports need a `.js` extension in `config-service/`, and no
   extension in `ui/`.** Different module resolution; see IMPLEMENTATION.md.
+- **Run tasks through `make`, from `module1/`.** `make help` lists them.
+  ENV_SCRIPTS.md says when going around it is acceptable.
+- **`make check` is the definition of done** — lint, format, type-check, build
+  and tests, all green. No skipped tests, no ignored warnings.
 - **Plan before acting** on anything beyond a single obvious edit.
 
 ## Keep the context current
