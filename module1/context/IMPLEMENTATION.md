@@ -34,6 +34,7 @@ Versions are pinned in `config-service/package.json`. Do not bump them casually.
 | Database | PostgreSQL | 16 |
 | Tests | Vitest | 3.0 |
 | Lint | ESLint + typescript-eslint | 9.17 / 8.19 |
+| Format | Prettier | 3.9 |
 | Package manager | Bun | 1.x |
 
 **Bun is the package manager only.** The application runs on Node.js. Never use
@@ -53,7 +54,8 @@ is safe to run twice. `make help` lists them.
 | `make setup` | Fresh machine: install both apps, start the database, migrate both databases |
 | `make dev` | Run the service with reload |
 | `make test` | Run the service suite (starts the database first if needed) |
-| `make check` | What CI would run, both apps: lint, build, test |
+| `make format` | Rewrite both apps with Prettier |
+| `make check` | What CI would run, both apps: lint, format, build, test |
 | `make db-up` / `db-down` | Start / stop PostgreSQL; data is kept |
 | `make db-shell` | `psql` against the development database |
 | `make migrate` | New migration against the development database |
@@ -74,8 +76,11 @@ PostgreSQL container, and migrates both databases. Verified by cloning the repo
 and running it against a brand-new container: 45/45 tests pass.
 
 Underneath, the package scripts in `config-service/package.json` are `dev`,
-`build`, `start`, `test`, `migrate`, and `lint` — run them with `bun run <script>`
-if you need one directly.
+`build`, `start`, `test`, `migrate`, `lint`, `format`, and `format:check` — run
+them with `bun run <script>` if you need one directly.
+
+Every command, environment variable, and port is catalogued in
+[ENV_SCRIPTS.md](ENV_SCRIPTS.md). This section is the short version.
 
 > After changing `prisma/schema.prisma`: `make migrate` updates the development
 > database, but the **test database needs `make migrate-test` too**. Forgetting it
@@ -281,13 +286,26 @@ the expected constraint violations behind the 409 and 404 tests at `error`
 level. If `prisma:error` blocks reappear on a green run, that helper regressed —
 they are not normal.
 
-## Lint and TypeScript
+## Lint, format, and TypeScript
 
 - ESLint flat config, `typescript-eslint` recommended.
 - `strict: true`, plus `noUnusedLocals` and `noUnusedParameters`. Prefix
   intentionally unused bindings with `_` (`_request`, `_reply`).
 - Tests are excluded from the build (`tsconfig.json` `exclude`), not from lint.
 - No `any`. Use `unknown` and narrow, as `mapUniqueNameError` does.
+
+**Never argue about formatting — run `make format`.** Prettier owns layout;
+ESLint owns correctness. The two do not overlap, because the ESLint config
+carries no stylistic rules, which is why `eslint-config-prettier` is not needed.
+
+The whole style is three lines in `module1/.prettierrc.json`: single quotes and
+`printWidth: 90`, everything else Prettier's default. It sits **above** both
+packages, so one file governs the service and the UI and they cannot drift.
+`.prettierignore` is per package, because Prettier only reads it from the
+directory it runs in.
+
+`make check` runs `format-check`, which fails on unformatted code rather than
+fixing it — CI should report, not rewrite.
 
 ## Admin UI
 
@@ -308,6 +326,7 @@ service so the two do not drift apart.
 | Tests | Vitest + Testing Library | 3.2 / RTL 16 |
 | DOM for tests | jsdom | 26 |
 | Lint | ESLint + typescript-eslint + react-hooks | 9 / 8 / 5 |
+| Format | Prettier | 3.9 (shares the service's config) |
 
 **No state library, no router, no component library, no CSS framework.** One
 screen does not justify any of them. All styling is `src/styles.css`, loose BEM.

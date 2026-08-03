@@ -57,7 +57,10 @@ describe('ConfigurationCard', () => {
     updateMock.mockResolvedValue(
       aConfiguration({
         ...configuration,
-        config: { ...configuration.config, apiUrl: 'https://api.example.com/v2' },
+        config: {
+          ...configuration.config,
+          apiUrl: 'https://api.example.com/v2',
+        },
       }),
     );
 
@@ -81,7 +84,10 @@ describe('ConfigurationCard', () => {
 
   it('sends a toggled boolean as a boolean', async () => {
     updateMock.mockResolvedValue(
-      aConfiguration({ ...configuration, config: { ...configuration.config, debug: true } }),
+      aConfiguration({
+        ...configuration,
+        config: { ...configuration.config, debug: true },
+      }),
     );
 
     render(<ConfigurationCard configuration={configuration} />);

@@ -91,9 +91,7 @@ export function getApplication(id: string): Promise<ApplicationDetail> {
  * Configurations in one request. 404s when the Application does not exist;
  * returns `[]` when it simply has none.
  */
-export function listConfigurations(
-  applicationId: string,
-): Promise<Configuration[]> {
+export function listConfigurations(applicationId: string): Promise<Configuration[]> {
   return request<Configuration[]>(
     `/applications/${encodeURIComponent(applicationId)}/configurations`,
   );

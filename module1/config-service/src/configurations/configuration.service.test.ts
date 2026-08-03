@@ -40,7 +40,11 @@ describe('configuration.service', () => {
 
   it('rejects a duplicate name within the same application (409)', async () => {
     const app = await seedApp();
-    await createConfiguration({ applicationId: app.id, name: 'db', config: {} });
+    await createConfiguration({
+      applicationId: app.id,
+      name: 'db',
+      config: {},
+    });
     await expect(
       createConfiguration({ applicationId: app.id, name: 'db', config: {} }),
     ).rejects.toBeInstanceOf(ConflictError);
@@ -72,9 +76,9 @@ describe('configuration.service', () => {
   });
 
   it('throws NotFoundError when updating a missing configuration', async () => {
-    await expect(
-      updateConfiguration('missing', { name: 'x' }),
-    ).rejects.toBeInstanceOf(NotFoundError);
+    await expect(updateConfiguration('missing', { name: 'x' })).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
   });
 
   it('gets a configuration by id and 404s when absent', async () => {
@@ -111,8 +115,16 @@ describe('configuration.service', () => {
     it('excludes configurations belonging to other applications', async () => {
       const a = await seedApp('a');
       const b = await seedApp('b');
-      await createConfiguration({ applicationId: a.id, name: 'db', config: {} });
-      await createConfiguration({ applicationId: b.id, name: 'db', config: {} });
+      await createConfiguration({
+        applicationId: a.id,
+        name: 'db',
+        config: {},
+      });
+      await createConfiguration({
+        applicationId: b.id,
+        name: 'db',
+        config: {},
+      });
 
       const found = await listConfigurationsByApplication(a.id);
       expect(found).toHaveLength(1);
@@ -125,9 +137,9 @@ describe('configuration.service', () => {
     });
 
     it('throws NotFoundError when the application does not exist', async () => {
-      await expect(
-        listConfigurationsByApplication('missing'),
-      ).rejects.toBeInstanceOf(NotFoundError);
+      await expect(listConfigurationsByApplication('missing')).rejects.toBeInstanceOf(
+        NotFoundError,
+      );
     });
   });
 });

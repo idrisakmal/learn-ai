@@ -42,7 +42,11 @@ describe('App', () => {
   it('loads the selected application’s configurations', async () => {
     listApplications.mockResolvedValue([billing, checkout]);
     listConfigurations.mockResolvedValue([
-      aConfiguration({ id: 'cfg-1', name: 'production', config: { debug: false } }),
+      aConfiguration({
+        id: 'cfg-1',
+        name: 'production',
+        config: { debug: false },
+      }),
       aConfiguration({ id: 'cfg-2', name: 'staging', config: { debug: true } }),
     ]);
 
@@ -51,7 +55,9 @@ describe('App', () => {
     await userEvent.click(await screen.findByRole('button', { name: /billing/ }));
 
     expect(listConfigurations).toHaveBeenCalledWith('app-1');
-    expect(await screen.findByRole('heading', { name: 'production' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'production' }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'staging' })).toBeInTheDocument();
   });
 
@@ -66,7 +72,9 @@ describe('App', () => {
     render(<App />);
 
     await userEvent.click(await screen.findByRole('button', { name: /billing/ }));
-    expect(await screen.findByRole('heading', { name: 'production' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'production' }),
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: /checkout/ }));
 

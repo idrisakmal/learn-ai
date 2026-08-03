@@ -38,7 +38,11 @@ describe('configuration routes', () => {
       },
     });
     expect(res.statusCode).toBe(201);
-    expect(res.json().config).toEqual({ host: 'db.internal', port: 5432, ssl: true });
+    expect(res.json().config).toEqual({
+      host: 'db.internal',
+      port: 5432,
+      ssl: true,
+    });
   });
 
   it('POST with an invalid body returns 400', async () => {
@@ -62,7 +66,11 @@ describe('configuration routes', () => {
   it('POST a duplicate name for the same application returns 409', async () => {
     const applicationId = await createApp();
     const payload = { applicationId, name: 'db', config: {} };
-    await app.inject({ method: 'POST', url: '/api/v1/configurations', payload });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/configurations',
+      payload,
+    });
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/configurations',

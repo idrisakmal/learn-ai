@@ -78,7 +78,10 @@ describe('configFromRows', () => {
 
     const result = configFromRows(rows);
 
-    expect(result).toEqual({ ok: false, errors: { timeoutMs: 'Enter a number.' } });
+    expect(result).toEqual({
+      ok: false,
+      errors: { timeoutMs: 'Enter a number.' },
+    });
   });
 
   it('rejects an empty number rather than sending 0', () => {

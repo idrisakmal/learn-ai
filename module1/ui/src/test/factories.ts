@@ -13,9 +13,7 @@ export function anApplication(overrides: Partial<Application> = {}): Application
 }
 
 /** Build a Configuration, overriding only what a test cares about. */
-export function aConfiguration(
-  overrides: Partial<Configuration> = {},
-): Configuration {
+export function aConfiguration(overrides: Partial<Configuration> = {}): Configuration {
   return {
     id: '01JHQ00000000000000000PROD',
     applicationId: '01JHQ0000000000000000BILL',

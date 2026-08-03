@@ -13,7 +13,9 @@
     "test": "vitest run",
     "seed": "tsx --env-file=.env prisma/seed.ts",
     "migrate": "prisma migrate dev",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@prisma/client": "^6.2.0",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "eslint": "^9.17.0",
+    "prettier": "^3.9.6",
     "prisma": "^6.2.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",

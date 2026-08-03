@@ -147,9 +147,20 @@ describe('application routes', () => {
   });
 
   it('GET /api/v1/applications lists applications (bare, no config ids)', async () => {
-    await app.inject({ method: 'POST', url: '/api/v1/applications', payload: { name: 'a' } });
-    await app.inject({ method: 'POST', url: '/api/v1/applications', payload: { name: 'b' } });
-    const res = await app.inject({ method: 'GET', url: '/api/v1/applications' });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/applications',
+      payload: { name: 'a' },
+    });
+    await app.inject({
+      method: 'POST',
+      url: '/api/v1/applications',
+      payload: { name: 'b' },
+    });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/applications',
+    });
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body).toHaveLength(2);

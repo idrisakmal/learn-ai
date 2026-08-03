@@ -57,7 +57,9 @@ export async function updateConfiguration(
 }
 
 export async function getConfiguration(id: string): Promise<Configuration> {
-  const configuration = await prisma.configuration.findUnique({ where: { id } });
+  const configuration = await prisma.configuration.findUnique({
+    where: { id },
+  });
   if (!configuration) {
     throw new NotFoundError(`Configuration ${id} not found`);
   }
@@ -88,10 +90,7 @@ export async function listConfigurationsByApplication(
 
 /** Map a Prisma unique-constraint violation (name-per-application) to a conflict. */
 function mapUniqueNameError(err: unknown, name?: string): unknown {
-  if (
-    err instanceof Prisma.PrismaClientKnownRequestError &&
-    err.code === 'P2002'
-  ) {
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
     return new ConflictError(
       `A configuration named "${name ?? ''}" already exists for this application`,
     );

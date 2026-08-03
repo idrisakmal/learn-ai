@@ -75,10 +75,7 @@ export function ConfigurationCard({ configuration }: ConfigurationCardProps) {
     try {
       // PUT is a partial update, so sending only `config` leaves name and
       // comments alone. The response is the source of truth for the new state.
-      const updated = await updateConfigurationValues(
-        configuration.id,
-        result.config,
-      );
+      const updated = await updateConfigurationValues(configuration.id, result.config);
       const confirmed = rowsFromConfig(updated.config);
       setBaseline(confirmed);
       setRows(confirmed);

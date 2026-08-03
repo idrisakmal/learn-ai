@@ -14,10 +14,7 @@ interface ConfigurationPanelProps {
  * One request gets them all, so no per-id follow-up is needed.
  */
 export function ConfigurationPanel({ application }: ConfigurationPanelProps) {
-  const load = useCallback(
-    () => listConfigurations(application.id),
-    [application.id],
-  );
+  const load = useCallback(() => listConfigurations(application.id), [application.id]);
   const { state, reload } = useAsync(load);
 
   return (

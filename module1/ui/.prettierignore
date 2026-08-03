@@ -1,0 +1,6 @@
+# Prettier reads .prettierignore from the directory it runs in, so each package
+# needs its own. The shared style itself lives in ../.prettierrc.json, which
+# Prettier finds by walking up from each file.
+
+node_modules/
+dist/

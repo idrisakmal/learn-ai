@@ -33,14 +33,19 @@ export function buildApp(): FastifyInstance {
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        return reply.code(409).send({ error: 'Conflict', message: 'Unique constraint violated' });
+        return reply
+          .code(409)
+          .send({ error: 'Conflict', message: 'Unique constraint violated' });
       }
       if (error.code === 'P2025') {
         return reply.code(404).send({ error: 'NotFound', message: 'Resource not found' });
       }
     }
     app.log.error(error);
-    return reply.code(500).send({ error: 'InternalServerError', message: 'An unexpected error occurred' });
+    return reply.code(500).send({
+      error: 'InternalServerError',
+      message: 'An unexpected error occurred',
+    });
   });
 
   // Resource routes, all under the /api/v1 prefix.

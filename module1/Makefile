@@ -20,8 +20,8 @@ PG_WAIT_SECONDS := 60
 TEST_DATABASE_URL := postgresql://$(PG_USER):$(PG_PASSWORD)@localhost:$(PG_PORT)/$(PG_TEST_DB)?schema=public
 
 .DEFAULT_GOAL := help
-.PHONY: help setup env install dev build start test test-watch lint check migrate migrate-test \
-        seed db-up db-down db-shell db-reset clean \
+.PHONY: help setup env install dev build start test test-watch lint format format-check \
+        check migrate migrate-test seed db-up db-down db-shell db-reset clean \
         ui-install ui-dev ui-build ui-test ui-test-watch ui-lint ui-check
 
 help: ## Show this help
@@ -75,7 +75,18 @@ test-watch: db-up ## Run tests in watch mode
 lint: ## Lint with ESLint
 	cd $(SVC) && bun run lint
 
-check: lint build test ui-check ## Everything CI would run, service and UI
+# Formatting covers both packages in one target: the style is repo-wide
+# (.prettierrc.json sits above both), so splitting it per package would invite
+# them to drift apart.
+format: ## Format the service and the UI with Prettier
+	cd $(SVC) && bun run format
+	cd $(UI) && bun run format
+
+format-check: ## Fail if anything is unformatted (what `check` runs)
+	cd $(SVC) && bun run format:check
+	cd $(UI) && bun run format:check
+
+check: lint format-check build test ui-check ## Everything CI would run, service and UI
 	@echo "All checks passed."
 
 ## --- Admin UI ------------------------------------------------------------

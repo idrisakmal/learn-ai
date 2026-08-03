@@ -11,7 +11,9 @@
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "react": "^19.2.0",
@@ -27,6 +29,7 @@
     "eslint": "^9.17.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.1.0",
+    "prettier": "^3.9.6",
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.19.0",
     "vite": "^6.4.0",

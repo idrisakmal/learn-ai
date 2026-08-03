@@ -9,9 +9,7 @@ import type { Env } from '../config/env.js';
  * 404 paths we assert on) at `error`, so leaving `error` enabled fills a passing
  * test run with alarming `prisma:error` blocks. Tests set LOG_LEVEL=silent.
  */
-export function resolvePrismaLogLevels(
-  level: Env['LOG_LEVEL'],
-): Prisma.LogLevel[] {
+export function resolvePrismaLogLevels(level: Env['LOG_LEVEL']): Prisma.LogLevel[] {
   if (level === 'silent') return [];
   if (level === 'debug' || level === 'trace') return ['query', 'warn', 'error'];
   return ['warn', 'error'];

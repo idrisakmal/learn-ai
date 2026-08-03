@@ -64,7 +64,11 @@ describe('ApplicationList', () => {
         state={{
           status: 'ready',
           data: [
-            anApplication({ id: 'app-1', name: 'billing', comments: 'Invoicing' }),
+            anApplication({
+              id: 'app-1',
+              name: 'billing',
+              comments: 'Invoicing',
+            }),
             anApplication({ id: 'app-2', name: 'checkout' }),
           ],
         }}

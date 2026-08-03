@@ -52,7 +52,9 @@ describe('listConfigurations', () => {
 
 describe('updateConfigurationValues', () => {
   it('PUTs only the config, relying on the partial update', async () => {
-    const updated = aConfiguration({ config: { apiUrl: 'https://new.example.com' } });
+    const updated = aConfiguration({
+      config: { apiUrl: 'https://new.example.com' },
+    });
     fetchMock.mockResolvedValue(jsonResponse(updated));
 
     await expect(
@@ -70,10 +72,7 @@ describe('updateConfigurationValues', () => {
 describe('error handling', () => {
   it('uses the service’s own message from an { error, message } body', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse(
-        { error: 'NotFound', message: 'Configuration cfg-1 not found' },
-        404,
-      ),
+      jsonResponse({ error: 'NotFound', message: 'Configuration cfg-1 not found' }, 404),
     );
 
     const error = await listConfigurations('app-1').catch((e: unknown) => e);
@@ -98,11 +97,12 @@ describe('error handling', () => {
       ),
     );
 
-    const error = await updateConfigurationValues('cfg-1', {}).catch(
-      (e: unknown) => e,
-    );
+    const error = await updateConfigurationValues('cfg-1', {}).catch((e: unknown) => e);
 
-    expect(error).toMatchObject({ status: 400, message: 'Request validation failed' });
+    expect(error).toMatchObject({
+      status: 400,
+      message: 'Request validation failed',
+    });
   });
 
   it('falls back to the status when the body is not JSON', async () => {
