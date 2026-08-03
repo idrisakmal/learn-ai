@@ -235,8 +235,6 @@ instead of rewriting it after every addition.
 
 ---
 
----
-
 ## Entry 8 — Makefile
 
 - **Prompt:** Add the Makefile before building the UI.
@@ -286,6 +284,59 @@ instead of rewriting it after every addition.
 
 ---
 
+## Entry 9 — The Admin UI
+
+- **Prompt:** Build the Admin UI (Module 2 exercise 5).
+- **Tool:** Claude Code
+- **Mode:** Act
+- **Context:** Continued
+- **Model:** Claude Opus 5 (1M context)
+- **Input:** `context/ABOUT.md`, `context/ARCHITECTURE.md`, `context/IMPLEMENTATION.md`
+- **Output:** `module1/ui/` (Vite + React + TypeScript, 41 tests); `prisma/seed.ts` and
+  `make seed`; UI targets in the `Makefile`; updates to `ARCHITECTURE.md` and
+  `IMPLEMENTATION.md`
+- **Cost:** [enter after the run completes]
+- **Reflections:**
+  - **The tech choices were already made.** `IMPLEMENTATION.md` had settled on Vite + React
+    + TypeScript before the exercise existed, so the run opened with building rather than
+    deciding. Same effect as Entry 6: the win shows up as questions not asked.
+  - **Scope came from `ABOUT.md`, not from taste.** List Applications, view one
+    Application's Configurations, update a value — no create, no delete. Nothing was added
+    "while we're here". A written scope boundary is what makes that an easy call instead of
+    a judgement call.
+  - Deliberately absent: no state library, no router, no component library, no CSS
+    framework. **One screen justifies none of them**, and the dependency-approval rule made
+    each one a decision to defend rather than a default to accept.
+  - The UI fetches same-origin `/api/v1` through the Vite dev proxy, so the service still
+    needs no CORS middleware — a whole class of configuration avoided by a proxy line.
+  - `config` is opaque `jsonb`, so the editor **infers a kind per value** and renders a
+    control to match: text for strings and numbers, a checkbox for booleans, raw JSON for
+    anything nested. Each card holds both the last state the service confirmed and the
+    state being edited; comparing them is what makes Save and Discard possible.
+  - After a save the rows are rebuilt from the **response**, not from local state, so
+    anything the service normalised is visible immediately. Optimistic updates were
+    rejected outright — showing a value as saved when it is not is the worse failure.
+  - Numbers use `type="text"` on purpose: a bad entry stays on screen to be corrected
+    instead of silently becoming `""`.
+  - **`make seed` exists because the UI needed something to show.** It upserts on natural
+    keys so it obeys the Makefile's safe-to-run-twice rule, and it seeds a string, a
+    number, a boolean and a nested object — precisely what exercises the value editor.
+    Development database only; the suite still builds its own fixtures.
+  - **Verified in a browser, not only in tests.** A non-numeric entry blocked the request
+    and reported it; a real edit persisted as a number; sibling keys and the other
+    configuration were untouched — the partial `PUT` behaving exactly as documented.
+    Two of the run's findings only appeared this way.
+  - Two learnings folded straight back into `IMPLEMENTATION.md` as they were hit:
+    `db-reset` fails while `make dev` holds a connection, and **the `.js` import-extension
+    rule does not apply in `ui/`**, which resolves as `bundler` rather than `NodeNext`.
+    A rule stated globally turned out to be per-package.
+  - The honest gap, now recorded in `ARCHITECTURE.md`: **no end-to-end test exists**. The
+    UI tests a mocked client, the service tests a real database, and nothing checks the two
+    agree. `ui/src/api/types.ts` is a hand-written mirror of the wire format, so a response
+    shape change will not break the build — it will surface at runtime.
+
+---
+
 ## Carried forward
 
 - Scaffold-then-fill, with placeholders the assistant may not guess at, is the technique
@@ -293,9 +344,13 @@ instead of rewriting it after every addition.
 - Check whether a documented "learning" was ever applied to the code. Several were not.
 - Ask "could someone rebuild this on a clean laptop from what is committed?" — for this
   project the answer was no until the Makefile existed.
-- Still outstanding: the Admin UI (exercise 5).
+- Module 2 is complete: context framework, Makefile, and Admin UI all delivered.
+- Outstanding from Entry 9: nothing checks the UI's mirrored types against the service's
+  real responses. An end-to-end test, or a generated client, would close it.
 - Unmeasured: no cost figures were recorded for any Module 2 entry. Worth capturing next
   time, since comparing model cost against output quality is an explicit module objective.
+- Write the journal entry in the same run as the work. Entry 9 was reconstructed after the
+  fact from a commit message, which only worked because that message was unusually full.
 
 
 
