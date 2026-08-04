@@ -15,10 +15,10 @@ that explanation belongs in the work item.
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
 - **Task:** 2 — read an Application's flags
-- **Stage:** not started
+- **Stage:** PLAN
 - **Updated:** 2026-08-04
 
-**Next:** PLAN task 2, `GET /api/v1/applications/:id/flags`.
+**Next:** agree the plan, commit it, then BUILD & ASSESS.
 
 <!--
 When a work item is active, this reads:
