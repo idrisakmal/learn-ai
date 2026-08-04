@@ -53,6 +53,10 @@ and applications fetch their own configuration from the API at runtime.
   only; the schema does not enforce it and nothing prevents other names.
   Because `name` is unique per Application, an Application has at most one
   Configuration per environment.
+- **Flag** — a named on/off switch belonging to one Application, so behaviour
+  can be turned on or off without a deploy. `name` is unique *within* an
+  Application, as with Configuration, and the value is a plain boolean —
+  a flag is on or off, nothing else.
 - **config** — the payload of a Configuration: an arbitrary JSON object of
   name/value pairs, stored as PostgreSQL `jsonb`. Shape is not validated or
   size-capped; that was a deliberate Module 1 decision.
@@ -66,6 +70,8 @@ and applications fetch their own configuration from the API at runtime.
 - CRUD for Applications and Configurations over a versioned REST API.
 - An admin web UI to list Applications, view an Application's Configurations,
   and update a configuration value.
+- Per-application feature flags. Being built now — see
+  `changes/001-feature-flags.md` for which parts exist.
 
 ### Explicitly out of scope
 
@@ -73,11 +79,6 @@ and applications fetch their own configuration from the API at runtime.
   and do not design around it speculatively.
 - Deleting Applications or Configurations. No DELETE endpoints exist by choice.
 - Validating or constraining the shape or size of a `config` payload.
-
-### Known to be coming
-
-- Per-application feature flags (a `Flag` model related to `Application`). The
-  schema was designed to accept this cleanly. Do not build it yet.
 
 ## Priorities and quality bar
 

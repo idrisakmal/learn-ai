@@ -156,8 +156,10 @@ db-down: ## Stop PostgreSQL (data is kept)
 db-shell: db-up ## Open psql against the development database
 	docker exec -it $(PG_CONTAINER) psql -U $(PG_USER) -d $(PG_DB)
 
-migrate: db-up ## Create and apply a migration (development database)
-	cd $(SVC) && bun run migrate
+# NAME is optional only because `prisma migrate dev` can ask. It asks
+# interactively, which stops an unattended run dead, so pass NAME=add_flags.
+migrate: db-up ## Create and apply a migration, e.g. make migrate NAME=add_flags
+	cd $(SVC) && bun run migrate $(if $(NAME),--name $(NAME))
 
 # Development data only. The test suite builds its own fixtures and truncates
 # between cases, so it never sees any of this.

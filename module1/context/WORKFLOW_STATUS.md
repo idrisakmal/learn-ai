@@ -14,11 +14,11 @@ that explanation belongs in the work item.
 # Status
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
-- **Task:** 1 — create a flag
-- **Stage:** PLAN
+- **Task:** 2 — read an Application's flags
+- **Stage:** not started
 - **Updated:** 2026-08-04
 
-**Next:** agree the plan, commit it, then BUILD & ASSESS.
+**Next:** PLAN task 2, `GET /api/v1/applications/:id/flags`.
 
 <!--
 When a work item is active, this reads:

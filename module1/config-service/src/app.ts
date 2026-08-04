@@ -6,6 +6,7 @@ import { prisma } from './db/prisma.js';
 import { ConflictError, NotFoundError } from './lib/errors.js';
 import { applicationRoutes } from './applications/application.routes.js';
 import { configurationRoutes } from './configurations/configuration.routes.js';
+import { flagRoutes } from './flags/flag.routes.js';
 
 /**
  * Build a fully-configured Fastify instance without starting to listen.
@@ -53,6 +54,7 @@ export function buildApp(): FastifyInstance {
     async (v1) => {
       await v1.register(applicationRoutes);
       await v1.register(configurationRoutes);
+      await v1.register(flagRoutes);
     },
     { prefix: '/api/v1' },
   );

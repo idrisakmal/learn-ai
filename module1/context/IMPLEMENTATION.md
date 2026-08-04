@@ -58,7 +58,7 @@ is safe to run twice. `make help` lists them.
 | `make check` | What CI would run, both apps: lint, format, build, test |
 | `make db-up` / `db-down` | Start / stop PostgreSQL; data is kept |
 | `make db-shell` | `psql` against the development database |
-| `make migrate` | New migration against the development database |
+| `make migrate NAME=add_flags` | New migration against the development database |
 | `make migrate-test` | Apply existing migrations to the test database |
 | `make seed` | Load demo data into the development database (safe to re-run) |
 | `make db-reset` | **Destructive.** Drop and recreate both databases |

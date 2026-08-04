@@ -90,13 +90,20 @@ real routing and error handling without a port.
 ## Data model
 
 ```
-Application ──1───────< Configuration
-  id (ULID, PK)          id (ULID, PK)
-  name (unique)          applicationId (FK → applications.id, ON DELETE CASCADE)
-  comments?              name          ─┐ unique together
-  createdAt/updatedAt    comments?      │ with applicationId
-                         config (jsonb) │
-                         createdAt/updatedAt
+Application ──1──< Configuration
+  id (ULID, PK)      id (ULID, PK)
+  name (unique)      applicationId (FK → applications.id, ON DELETE CASCADE)
+  comments?          name          ─┐ unique together
+  createdAt          comments?      │ with applicationId
+  updatedAt          config (jsonb) │
+     │               createdAt/updatedAt
+     │
+     └──────1──< Flag
+                  id (ULID, PK)
+                  applicationId (FK → applications.id, ON DELETE CASCADE)
+                  name    ─┐ unique together with applicationId
+                  enabled  │ boolean, no default
+                  createdAt/updatedAt
 ```
 
 Decisions worth knowing:
@@ -109,9 +116,15 @@ Decisions worth knowing:
 - **`name` is unique per Application, not globally.** Two applications may both
   have a Configuration named `production`. Enforced by the compound unique
   `(applicationId, name)`.
-- **`ON DELETE CASCADE`** on the FK, so removing an Application takes its
-  Configurations with it. Nothing exercises this today — there are no DELETE
-  endpoints — but the constraint is in place for when there are.
+- **`ON DELETE CASCADE`** on both FKs, so removing an Application takes its
+  Configurations and Flags with it. Nothing exercises this today — there are no
+  DELETE endpoints — but the constraint is in place for when there are.
+- **A Flag is a boolean, not opaque `jsonb`.** The deliberate opposite of the
+  `config` decision above: a flag that is neither on nor off is not a flag, so
+  the service does interpret this value. It also carries **no `comments`
+  column** and **no default for `enabled`** — nothing reads a comment on a flag,
+  and a flag whose state nobody chose should not be creatable. Both are cheap to
+  add later and neither is easy to remove.
 
 ## Identifiers
 
@@ -277,10 +290,6 @@ runnable in an environment without Postgres. Accepted deliberately.
 
 ## Extension points
 
-- **Feature flags (Module 3).** A `Flag` model with a FK to `Application`,
-  mirroring the Configuration relation. `prisma/schema.prisma` carries a
-  commented stub, and `resetDb()` already truncates with `CASCADE` so it will
-  cover the new table. Do not build it yet.
 - **Authentication.** Nothing exists. When it arrives it belongs as a Fastify
   hook ahead of the route handlers, leaving services untouched.
 - **Environments.** Currently a naming convention on `Configuration.name`, not a

@@ -174,7 +174,7 @@ repo-wide, and splitting it per package would let the two drift.
 | `make db-up` | Start PostgreSQL and ensure both databases exist. Idempotent. |
 | `make db-down` | Stop the container. Data is kept. |
 | `make db-shell` | `psql` against the development database |
-| `make migrate` | Create and apply a migration (**development database only**) |
+| `make migrate NAME=add_flags` | Create and apply a migration (**development database only**). Without `NAME`, `prisma migrate dev` prompts for one — which stops an unattended run dead, so always pass it. |
 | `make migrate-test` | Apply existing migrations to the test database |
 | `make seed` | Demo data into the development database. Safe to re-run — it upserts on natural keys. |
 | `make db-reset` | **Destructive.** Drop and recreate both databases, then re-migrate. |

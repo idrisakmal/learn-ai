@@ -18,6 +18,7 @@ model Application {
   updatedAt DateTime @updatedAt
 
   configurations Configuration[]
+  flags          Flag[]
 
   @@map("applications")
 }
@@ -38,10 +39,17 @@ model Configuration {
   @@map("configurations")
 }
 
-// Module 3 extension point (do NOT build now):
-// model Flag {
-//   id            String  @id
-//   applicationId String
-//   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-//   ...
-// }
+model Flag {
+  id            String   @id
+  applicationId String
+  name          String   @db.VarChar(256)
+  enabled       Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Name is unique per application, as with Configuration.
+  @@unique([applicationId, name])
+  @@map("flags")
+}
