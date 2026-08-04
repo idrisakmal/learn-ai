@@ -15,11 +15,12 @@ that explanation belongs in the work item.
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
 - **Task:** 3 — toggle a flag
-- **Stage:** not started
+- **Stage:** PLAN
 - **Updated:** 2026-08-04
 
-**Next:** PLAN task 3, `PUT /api/v1/flags/:id`. One question is open before the
-schema is written — see the first entry under *Future tasks* in the work item.
+**Next:** the test strategy and file list for `PUT /api/v1/flags/:id` are in the
+work item, awaiting agreement. The open question is settled — the body accepts
+`name` as well as `enabled`, matching the other resources.
 
 <!--
 When a work item is active, this reads:

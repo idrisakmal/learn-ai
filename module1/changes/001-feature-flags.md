@@ -39,7 +39,7 @@ the next one starts.
 - **Then** only `enabled` changes — `name` and `applicationId` are untouched,
   matching the partial-`PUT` semantics the rest of the API already uses — and
   an unknown flag id returns `404`
-- **Status:** ❌ not started
+- **Status:** 🔄 in progress
 
 ### 4. Toggle a flag from the Admin UI
 
@@ -54,9 +54,70 @@ the next one starts.
 
 ## Current task
 
-**Task:** none — task 2 committed · **Stage:** not started
+**Task:** 3 — toggle a flag · **Stage:** PLAN
 
 ### PLAN
+
+**Decision: `PUT /flags/:id` accepts `name` as well as `enabled`.** The open
+question from *Future tasks* is settled. Both fields are optional and the body
+must carry at least one, exactly like `updateApplicationSchema` and
+`updateConfigurationSchema` — an integrating developer learns partial-`PUT`
+once and it holds for every resource. The cost is a rename path nothing calls
+yet, and the 409 that comes with it; the criterion's "`name` untouched" is
+satisfied by absence, not by prohibition.
+
+`applicationId` is **not** accepted. Moving a flag to another application is not
+a toggle, and it would need a parent-exists check plus a fresh uniqueness check
+in the destination.
+
+#### Test strategy
+
+`flag.service.test.ts` — new `describe('updateFlag')`:
+
+| Case | Asserts |
+|---|---|
+| `{ enabled: false }` on an enabled flag | returns `enabled: false`; `name` and `applicationId` unchanged — the criterion |
+| `{ name: 'renamed' }` only | `name` changes, `enabled` untouched — the absence rule in the other direction |
+| unknown id | `NotFoundError` |
+| rename onto a sibling's name | `ConflictError` |
+| rename onto a name used under a *different* application | succeeds — the constraint is still the compound `(applicationId, name)` on the update path |
+
+The `enabled: false` case is the one that will be got wrong. A truthiness spread
+(`...(input.enabled ? { enabled: input.enabled } : {})`) silently refuses to turn
+a flag off while every other test stays green; only `!== undefined` is correct.
+This is the same trap task 1 guarded against on create.
+
+`flag.routes.test.ts` — new `describe`, all via `app.inject()`:
+
+| Request | Status |
+|---|---|
+| `PUT /api/v1/flags/:id` `{ enabled: false }` | 200, body shows the new value |
+| unknown id | 404 |
+| `{}` | 400 — `.refine()` rejects an empty body |
+| `{ enabled: 'yes' }` | 400 |
+| rename onto a taken name | 409, message names the flag (so it came from the service, not the central P2002 net) |
+
+#### Files
+
+| File | Change |
+|---|---|
+| `src/flags/flag.schema.ts` | add `updateFlagSchema` + `UpdateFlagInput`, and `idParamSchema` — each resource defines its own, as `application.schema.ts` and `configuration.schema.ts` already do |
+| `src/flags/flag.service.ts` | add `updateFlag(id, input)`; spread only fields that are `!== undefined`; catch `P2025` → `NotFoundError`, otherwise rethrow through the existing `mapUniqueNameError` — the same shape as `updateConfiguration` |
+| `src/flags/flag.routes.ts` | add `app.put('/flags/:id')` → parse params, parse body, call the service, `200` |
+| `src/flags/flag.service.test.ts` | the five service cases above |
+| `src/flags/flag.routes.test.ts` | the five route cases above |
+
+No migration — the `Flag` model is unchanged. No `app.ts` change; `flagRoutes` is
+already registered. No new dependencies.
+
+#### Not in this task
+
+- **No `GET /flags/:id`.** Nothing asks for it; flags are read through
+  `GET /applications/:id/flags`.
+- **No `DELETE`.** Out of scope project-wide.
+- **No UI.** That is task 4, along with its seed prerequisite.
+- **No `updatedAt` assertions.** Prisma maintains it; testing the ORM is not the
+  job.
 
 ### BUILD & ASSESS
 
@@ -66,10 +127,6 @@ the next one starts.
 
 ## Future tasks
 
-- **Decide in task 3's PLAN whether `PUT /flags/:id` accepts a `name`.** The
-  criterion only requires `enabled` to change and says `name` must be untouched
-  when absent, which is not the same as saying a rename is forbidden.
-  `updateConfigurationSchema` allows one. Settle it before writing the schema.
 - **Demo flags in `prisma/seed.ts`** — a prerequisite of task 4, not an
   optional extra. The UI cannot create a flag, so an empty table leaves nothing
   to toggle. Upsert on `(applicationId, name)` like the rest of the seed.
