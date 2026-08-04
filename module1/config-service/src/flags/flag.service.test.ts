@@ -3,7 +3,7 @@ import { prisma } from '../db/prisma.js';
 import { resetDb } from '../test/helpers.js';
 import { ConflictError, NotFoundError } from '../lib/errors.js';
 import { createApplication } from '../applications/application.service.js';
-import { createFlag } from './flag.service.js';
+import { createFlag, listFlagsByApplication } from './flag.service.js';
 
 beforeEach(resetDb);
 afterAll(async () => {
@@ -67,5 +67,40 @@ describe('flag.service', () => {
     });
     expect(second.name).toBe('new-checkout');
     expect(second.applicationId).toBe(b.id);
+  });
+
+  describe('listFlagsByApplication', () => {
+    it('returns full flags, oldest first', async () => {
+      const app = await seedApp();
+      await createFlag({ applicationId: app.id, name: 'new-checkout', enabled: true });
+      await createFlag({ applicationId: app.id, name: 'dark-mode', enabled: false });
+
+      const found = await listFlagsByApplication(app.id);
+      expect(found.map((f) => f.name)).toEqual(['new-checkout', 'dark-mode']);
+      // Full records, not just ids — this is the point of the endpoint.
+      expect(found[1].enabled).toBe(false);
+    });
+
+    it('excludes flags belonging to other applications', async () => {
+      const a = await seedApp('a');
+      const b = await seedApp('b');
+      await createFlag({ applicationId: a.id, name: 'new-checkout', enabled: true });
+      await createFlag({ applicationId: b.id, name: 'new-checkout', enabled: true });
+
+      const found = await listFlagsByApplication(a.id);
+      expect(found).toHaveLength(1);
+      expect(found[0].applicationId).toBe(a.id);
+    });
+
+    it('returns an empty array for an application with no flags', async () => {
+      const app = await seedApp();
+      expect(await listFlagsByApplication(app.id)).toEqual([]);
+    });
+
+    it('throws NotFoundError when the application does not exist', async () => {
+      await expect(listFlagsByApplication('missing')).rejects.toBeInstanceOf(
+        NotFoundError,
+      );
+    });
   });
 });

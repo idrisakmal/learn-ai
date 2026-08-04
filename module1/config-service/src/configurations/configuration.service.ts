@@ -2,6 +2,7 @@ import { Prisma, type Configuration } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { newId } from '../lib/ids.js';
 import { ConflictError, NotFoundError } from '../lib/errors.js';
+import { assertApplicationExists } from '../applications/application.service.js';
 import type {
   CreateConfigurationInput,
   UpdateConfigurationInput,
@@ -10,13 +11,7 @@ import type {
 export async function createConfiguration(
   input: CreateConfigurationInput,
 ): Promise<Configuration> {
-  const application = await prisma.application.findUnique({
-    where: { id: input.applicationId },
-    select: { id: true },
-  });
-  if (!application) {
-    throw new NotFoundError(`Application ${input.applicationId} not found`);
-  }
+  await assertApplicationExists(input.applicationId);
 
   try {
     return await prisma.configuration.create({
@@ -74,13 +69,7 @@ export async function getConfiguration(id: string): Promise<Configuration> {
 export async function listConfigurationsByApplication(
   applicationId: string,
 ): Promise<Configuration[]> {
-  const application = await prisma.application.findUnique({
-    where: { id: applicationId },
-    select: { id: true },
-  });
-  if (!application) {
-    throw new NotFoundError(`Application ${applicationId} not found`);
-  }
+  await assertApplicationExists(applicationId);
 
   return prisma.configuration.findMany({
     where: { applicationId },

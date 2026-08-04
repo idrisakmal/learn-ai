@@ -14,11 +14,12 @@ that explanation belongs in the work item.
 # Status
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
-- **Task:** 2 — read an Application's flags
-- **Stage:** PLAN
+- **Task:** 3 — toggle a flag
+- **Stage:** not started
 - **Updated:** 2026-08-04
 
-**Next:** agree the plan, commit it, then BUILD & ASSESS.
+**Next:** PLAN task 3, `PUT /api/v1/flags/:id`. One question is open before the
+schema is written — see the first entry under *Future tasks* in the work item.
 
 <!--
 When a work item is active, this reads:

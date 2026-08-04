@@ -12,6 +12,22 @@ export type ApplicationWithConfigIds = Application & {
   configurationIds: string[];
 };
 
+/**
+ * Throw NotFoundError unless the Application exists. Callers that own a
+ * different resource use this before reading or writing rows that hang off an
+ * Application, so a bad parent id becomes a 404 naming the Application rather
+ * than a foreign-key error or an empty list.
+ */
+export async function assertApplicationExists(id: string): Promise<void> {
+  const application = await prisma.application.findUnique({
+    where: { id },
+    select: { id: true },
+  });
+  if (!application) {
+    throw new NotFoundError(`Application ${id} not found`);
+  }
+}
+
 export async function createApplication(
   input: CreateApplicationInput,
 ): Promise<Application> {

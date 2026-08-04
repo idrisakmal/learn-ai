@@ -146,6 +146,62 @@ describe('application routes', () => {
     expect(res.statusCode).toBe(404);
   });
 
+  it('GET /api/v1/applications/:id/flags returns full flags in creation order', async () => {
+    const created = (
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/applications',
+        payload: { name: 'billing' },
+      })
+    ).json();
+    for (const [name, enabled] of [
+      ['new-checkout', true],
+      ['dark-mode', false],
+    ] as const) {
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/flags',
+        payload: { applicationId: created.id, name, enabled },
+      });
+    }
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/applications/${created.id}/flags`,
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.map((f: { name: string }) => f.name)).toEqual([
+      'new-checkout',
+      'dark-mode',
+    ]);
+    expect(body[1].enabled).toBe(false);
+  });
+
+  it('GET flags for an application with none returns 200 and []', async () => {
+    const created = (
+      await app.inject({
+        method: 'POST',
+        url: '/api/v1/applications',
+        payload: { name: 'billing' },
+      })
+    ).json();
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/applications/${created.id}/flags`,
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual([]);
+  });
+
+  it('GET flags for a missing application returns 404', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/applications/does-not-exist/flags',
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
   it('GET /api/v1/applications lists applications (bare, no config ids)', async () => {
     await app.inject({
       method: 'POST',

@@ -83,6 +83,15 @@ plain data, and throw domain errors. That keeps two things cheap:
 The cost: a small amount of ceremony for endpoints that are pure pass-through.
 Accepted; the consistency is worth more than the saved lines.
 
+**A service may call a peer service.** `configuration.service.ts` and
+`flag.service.ts` both call `assertApplicationExists` from
+`application.service.ts` rather than each keeping their own copy of the
+parent-exists check. That is sideways, not upward — no service reaches back into
+routes — and it is what keeps one 404 message for a missing Application instead
+of three that drift. The risk it introduces is a cycle between two services,
+which nothing needs today; if one ever appears, the shared piece belongs in
+`lib/` instead.
+
 `buildApp()` is separated from `server.ts` for the same reason. `app.ts`
 assembles a fully-wired Fastify instance but never listens, so tests get the
 real routing and error handling without a port.
@@ -152,14 +161,15 @@ Decisions that shaped the surface:
   returns bare Applications; `GET /applications/:id` adds `configurationIds`.
   This keeps the list response small and predictable.
 - **Nested reads live under the parent.** `GET /applications/:id/configurations`
-  returns an application's full Configurations in one request, so clients never
-  have to follow `configurationIds` with a request per id. It 404s when the
-  application does not exist and returns `[]` when it simply has none — the two
-  cases are distinguishable. The route is registered in `application.routes.ts`
-  (all `/applications/*` paths in one place) while the query lives in
-  `configuration.service.ts` (all Configuration data access in one place); a
-  route may call another resource's service, since that is still routes →
-  services.
+  and `GET /applications/:id/flags` return an application's full children in one
+  request, so clients never have to follow a list of ids with a request per id.
+  Both 404 when the application does not exist and return `[]` when it simply
+  has none — the two cases are distinguishable, which is why the parent-exists
+  check sits in the service and not the route. Each route is registered in
+  `application.routes.ts` (all `/applications/*` paths in one place) while the
+  query lives in the owning resource's service (all of one resource's data
+  access in one place); a route may call another resource's service, since that
+  is still routes → services.
 - **Referential integrity is checked in the service, not left to the database.**
   `createConfiguration` looks up the Application first and throws `NotFoundError`
   so the caller gets a 404 with a useful message rather than a foreign-key
@@ -298,9 +308,11 @@ runnable in an environment without Postgres. Accepted deliberately.
 
 ## Known gaps
 
-- No pagination on `GET /applications` or `GET /applications/:id/configurations`.
-  Fine at current scale, wrong eventually. The nested route is where pagination
-  should land first.
+- No pagination on `GET /applications` or either nested read
+  (`/configurations`, `/flags`). Fine at current scale, wrong eventually. The
+  nested routes are where pagination should land first, and it should land on
+  both at once — paginating one sibling and not the other is worse than
+  paginating neither.
 - No authentication or authorisation anywhere. See ABOUT.md for what that
   implies about storing secrets.
 - Prisma `P2003` (foreign-key violation) is not mapped by the central error

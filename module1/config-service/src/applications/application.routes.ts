@@ -11,6 +11,7 @@ import {
   listApplications,
 } from './application.service.js';
 import { listConfigurationsByApplication } from '../configurations/configuration.service.js';
+import { listFlagsByApplication } from '../flags/flag.service.js';
 
 /**
  * Routes for /applications (registered under the /api/v1 prefix by the app).
@@ -48,5 +49,13 @@ export async function applicationRoutes(app: FastifyInstance): Promise<void> {
     const { id } = idParamSchema.parse(request.params);
     const configurations = await listConfigurationsByApplication(id);
     return reply.code(200).send(configurations);
+  });
+
+  // Same shape as the configurations read above: full records in one request,
+  // 404 when the application is unknown rather than an empty list.
+  app.get('/applications/:id/flags', async (request, reply) => {
+    const { id } = idParamSchema.parse(request.params);
+    const flags = await listFlagsByApplication(id);
+    return reply.code(200).send(flags);
   });
 }
