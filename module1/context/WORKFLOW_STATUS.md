@@ -14,13 +14,13 @@ that explanation belongs in the work item.
 # Status
 
 - **Work item:** [changes/001-feature-flags.md](../changes/001-feature-flags.md)
-- **Task:** 3 — toggle a flag
-- **Stage:** PLAN
+- **Task:** 4 — toggle a flag from the Admin UI
+- **Stage:** not started
 - **Updated:** 2026-08-04
 
-**Next:** the test strategy and file list for `PUT /api/v1/flags/:id` are in the
-work item, awaiting agreement. The open question is settled — the body accepts
-`name` as well as `enabled`, matching the other resources.
+**Next:** PLAN task 4, the last criterion in the work item. Two things are open
+before components are written — where flags sit on screen, and the seed flags
+they need to exist at all. Both are under *Future tasks* in the work item.
 
 <!--
 When a work item is active, this reads:

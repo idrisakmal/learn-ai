@@ -1,9 +1,9 @@
 import { Prisma, type Flag } from '@prisma/client';
 import { prisma } from '../db/prisma.js';
 import { newId } from '../lib/ids.js';
-import { ConflictError } from '../lib/errors.js';
+import { ConflictError, NotFoundError } from '../lib/errors.js';
 import { assertApplicationExists } from '../applications/application.service.js';
-import type { CreateFlagInput } from './flag.schema.js';
+import type { CreateFlagInput, UpdateFlagInput } from './flag.schema.js';
 
 export async function createFlag(input: CreateFlagInput): Promise<Flag> {
   await assertApplicationExists(input.applicationId);
@@ -18,6 +18,28 @@ export async function createFlag(input: CreateFlagInput): Promise<Flag> {
       },
     });
   } catch (err) {
+    throw mapUniqueNameError(err, input.name);
+  }
+}
+
+/**
+ * Partial update. Only fields the caller sent are written — `enabled` is
+ * compared against `undefined` rather than tested for truth, or sending
+ * `enabled: false` would leave the flag on.
+ */
+export async function updateFlag(id: string, input: UpdateFlagInput): Promise<Flag> {
+  try {
+    return await prisma.flag.update({
+      where: { id },
+      data: {
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.enabled !== undefined ? { enabled: input.enabled } : {}),
+      },
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      throw new NotFoundError(`Flag ${id} not found`);
+    }
     throw mapUniqueNameError(err, input.name);
   }
 }

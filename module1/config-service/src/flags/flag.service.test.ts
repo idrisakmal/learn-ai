@@ -3,7 +3,7 @@ import { prisma } from '../db/prisma.js';
 import { resetDb } from '../test/helpers.js';
 import { ConflictError, NotFoundError } from '../lib/errors.js';
 import { createApplication } from '../applications/application.service.js';
-import { createFlag, listFlagsByApplication } from './flag.service.js';
+import { createFlag, listFlagsByApplication, updateFlag } from './flag.service.js';
 
 beforeEach(resetDb);
 afterAll(async () => {
@@ -67,6 +67,76 @@ describe('flag.service', () => {
     });
     expect(second.name).toBe('new-checkout');
     expect(second.applicationId).toBe(b.id);
+  });
+
+  describe('updateFlag', () => {
+    // The criterion itself: enabled changes, nothing else moves. It is also the
+    // case a truthiness spread breaks — `input.enabled ? ... : {}` drops the
+    // write and the flag stays on, while every other test here still passes.
+    it('turns an enabled flag off without disturbing name or applicationId', async () => {
+      const app = await seedApp();
+      const flag = await createFlag({
+        applicationId: app.id,
+        name: 'new-checkout',
+        enabled: true,
+      });
+
+      const updated = await updateFlag(flag.id, { enabled: false });
+      expect(updated.enabled).toBe(false);
+      expect(updated.name).toBe('new-checkout');
+      expect(updated.applicationId).toBe(app.id);
+    });
+
+    // The absence rule in the other direction: a field nobody sent is not written.
+    it('renames without disturbing enabled', async () => {
+      const app = await seedApp();
+      const flag = await createFlag({
+        applicationId: app.id,
+        name: 'new-checkout',
+        enabled: true,
+      });
+
+      const updated = await updateFlag(flag.id, { name: 'checkout-v2' });
+      expect(updated.name).toBe('checkout-v2');
+      expect(updated.enabled).toBe(true);
+    });
+
+    it('throws NotFoundError when the flag does not exist', async () => {
+      await expect(updateFlag('missing', { enabled: false })).rejects.toBeInstanceOf(
+        NotFoundError,
+      );
+    });
+
+    it('rejects a rename onto a sibling flag name', async () => {
+      const app = await seedApp();
+      await createFlag({ applicationId: app.id, name: 'dark-mode', enabled: true });
+      const flag = await createFlag({
+        applicationId: app.id,
+        name: 'new-checkout',
+        enabled: true,
+      });
+
+      await expect(updateFlag(flag.id, { name: 'dark-mode' })).rejects.toBeInstanceOf(
+        ConflictError,
+      );
+    });
+
+    // The compound (applicationId, name) constraint holds on update too, not
+    // just on create — a global unique on name would fail this.
+    it('allows a rename onto a name used under a different application', async () => {
+      const a = await seedApp('a');
+      const b = await seedApp('b');
+      await createFlag({ applicationId: b.id, name: 'dark-mode', enabled: true });
+      const flag = await createFlag({
+        applicationId: a.id,
+        name: 'new-checkout',
+        enabled: true,
+      });
+
+      const updated = await updateFlag(flag.id, { name: 'dark-mode' });
+      expect(updated.name).toBe('dark-mode');
+      expect(updated.applicationId).toBe(a.id);
+    });
   });
 
   describe('listFlagsByApplication', () => {

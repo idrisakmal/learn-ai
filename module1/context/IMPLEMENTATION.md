@@ -257,6 +257,30 @@ data: {
 data: { name: input.name, comments: input.comments ?? null }
 ```
 
+**Compare against `undefined`, never against truth.** The distinction is easy to
+miss on a string and fatal on a boolean: `false` is half a boolean's domain, so a
+truthiness test silently drops every request that turns something *off*.
+
+```ts
+// GOOD — sending `enabled: false` writes false
+...(input.enabled !== undefined ? { enabled: input.enabled } : {})
+
+// BAD — sending `enabled: false` is indistinguishable from omitting it,
+// so the flag stays on and the write appears to succeed
+...(input.enabled ? { enabled: input.enabled } : {})
+```
+
+This is not hypothetical: `updateFlag` was written correctly, then deliberately
+broken this way to confirm the guard test catches it (see *Testing* below). Two
+tests failed and seventy-two passed — the bug is invisible to everything except a
+test that toggles a value *off*.
+
+**A parent foreign key is never in an update body.** `updateConfigurationSchema`
+and `updateFlagSchema` both omit `applicationId`, so a child cannot be moved
+between parents by a `PUT`. Reparenting needs a parent-exists check plus a fresh
+uniqueness check against the destination's siblings, which is a different
+operation from editing a record in place.
+
 ## Environment configuration
 
 `config/env.ts` parses `process.env` with Zod once at import time, freezes the
@@ -279,6 +303,11 @@ git-ignored.
 - `globals: false` — import `describe`, `it`, `expect` from `vitest` explicitly.
 - Cover roughly the 80% of scenarios that matter per module, including the error
   paths (400 / 404 / 409). Pure type files and barrel re-exports need no tests.
+- **When a test exists to guard one specific mistake, prove it by making that
+  mistake.** Break the line, run the suite, check that the guard test fails and
+  the others do not, then restore. A guard nobody has seen fail is a guess about
+  what the test covers. This caught nothing when applied to `updateFlag` — which
+  is the point: the confirmation is the deliverable, and it costs one test run.
 
 **A passing run prints nothing.** `LOG_LEVEL=silent` disables Prisma logging
 entirely (`resolvePrismaLogLevels` in `db/prisma.ts`), because Prisma reports
