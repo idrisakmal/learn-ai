@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "domain-lang": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/idris.haslin/Projects/learn-ai/my-domain-lang-mcp",
+        "my-domain-lang-mcp-stdio"
+      ],
+      "env": {
+        "KG_PROJECT_DIR": "/Users/idris.haslin/Projects/learn-ai/assisted-to-agentic-module-6/examples/knowledge-graph"
+      }
+    }
+  }
+}
