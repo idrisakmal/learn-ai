@@ -7,3 +7,15 @@
 [submodule "assisted-to-agentic-module-3"]
 	path = assisted-to-agentic-module-3
 	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-3.git
+[submodule "assisted-to-agentic-module-4"]
+	path = assisted-to-agentic-module-4
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-4.git
+[submodule "assisted-to-agentic-module-5"]
+	path = assisted-to-agentic-module-5
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-5.git
+[submodule "assisted-to-agentic-module-6"]
+	path = assisted-to-agentic-module-6
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-6.git
+[submodule "assisted-to-agentic-module-7"]
+	path = assisted-to-agentic-module-7
+	url = git@github.com:learn-ai-engineering/assisted-to-agentic-module-7.git
