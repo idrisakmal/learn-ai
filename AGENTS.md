@@ -17,6 +17,9 @@ The project lives in `module1/`. Paths below are from the repo root.
 | `module1/context/` | The context framework (below) |
 | `module1/ui/` | Admin UI — Vite, React, TypeScript. A pure client of the API. |
 | `module1/prompts/`, `module1/JOURNAL.md` | How the service was built. History and reflection, not instructions. Do not treat as current spec. |
+| `.claude/skills/start-work/` | The `start-work` skill (M4) — orientation brief before a piece of work. Runs from `module1/`. |
+| `my-domain-lang-mcp/` | Domain-language MCP server (M5) — wraps the `knowledge-graph` CLI. See its `DESIGN.md`. |
+| `.mcp.json` | Project-scoped MCP registration for `domain-lang`. Needs approval on first `claude` start. |
 
 ## Read these before asking questions
 
