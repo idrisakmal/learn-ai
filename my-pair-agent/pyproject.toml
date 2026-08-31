@@ -1,0 +1,28 @@
+[project]
+name = "my-pair-agent"
+version = "0.1.0"
+description = "Module 6 exercise — a bespoke PAIR Agent harness around config-service"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=2.0",
+    "openai>=1.40",
+    "python-dotenv>=1.0",
+]
+
+[project.scripts]
+pair-agent = "pair_agent.main:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pair_agent"]
+
+[tool.pytest.ini_options]
+python_files = ["*_test.py"]
