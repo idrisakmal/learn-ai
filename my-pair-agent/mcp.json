@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "domain-lang": {
+      "command": "uv",
+      "args": ["run", "my-domain-lang-mcp-stdio"],
+      "cwd": "../my-domain-lang-mcp",
+      "env": {
+        "KG_PROJECT_DIR": "../assisted-to-agentic-module-6/examples/knowledge-graph"
+      }
+    }
+  }
+}

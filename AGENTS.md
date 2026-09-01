@@ -19,6 +19,7 @@ The project lives in `module1/`. Paths below are from the repo root.
 | `module1/prompts/`, `module1/JOURNAL.md` | How the service was built. History and reflection, not instructions. Do not treat as current spec. |
 | `.claude/skills/start-work/` | The `start-work` skill (M4) — orientation brief before a piece of work. Runs from `module1/`. |
 | `my-domain-lang-mcp/` | Domain-language MCP server (M5) — wraps the `knowledge-graph` CLI. See its `DESIGN.md`. |
+| `my-pair-agent/` | The PAIR Agent harness (M6) — a CLI agent over this repo, using the M4 skill and the M5 MCP server. See its `README.md`. |
 | `.mcp.json` | Project-scoped MCP registration for `domain-lang`. Needs approval on first `claude` start. |
 
 ## Read these before asking questions
